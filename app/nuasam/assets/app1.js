@@ -41,12 +41,14 @@ var xlib = {
 
   getNextOp1 : function() {
     let  k= this.toI($('#oplen'))-1;
+    k = k<0 ? 0 : k;
     return this.getRandomArbitrary(Math.pow(10,k), Math.pow(10,k+1));
   },
 
   getNextOp2: function() {
     let  k= this.toI($('#oplen'))-1;
     --k;
+    k = k<0 ? 0 : k;
     return this.getRandomArbitrary(Math.pow(10,k), Math.pow(10,k+1));
   },
 
