@@ -57,7 +57,7 @@ input.cfg { width: 100px; }
 }
 
 #answer-sheet { position: absolute; z-index: 999;
- width: 230px; left: 65px;
+ left: 30px; width: 230px;
   border: 0px solid red;
 }
 #answer-step { margin:0; padding: 0; color: #55F; }

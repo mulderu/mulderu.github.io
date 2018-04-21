@@ -46,7 +46,7 @@ var xlib = {
 
   getNextOp2: function() {
     let  k= this.toI($('#oplen'))-1;
-    if(k>1) k--;
+    --k;
     return this.getRandomArbitrary(Math.pow(10,k), Math.pow(10,k+1));
   },
 
