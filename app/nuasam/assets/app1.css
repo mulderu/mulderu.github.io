@@ -41,11 +41,11 @@ code {
 /* --- for mulder -- */
 
 input { text-align: right; }
+input.op { width: 200px;}
+input.cfg { width: 100px; }
 
 .myview { display: none; margin-top: 30px;}
 .myview.active { display: block; }
-
-input.op { text-align: right;  width: 240px;}
 
 
 #run-background { position: relative; }
@@ -77,5 +77,3 @@ input.op { text-align: right;  width: 240px;}
 .xstep-7 { margin-right: 140px; }
 .xstep-8 { margin-right: 160px; }
 .xstep-9 { margin-right: 180px; }
-
-input.cfg { width: 100px; }
