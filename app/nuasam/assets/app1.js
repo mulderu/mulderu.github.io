@@ -1,19 +1,11 @@
 function onHashChanged() {
   let menus = location.href.split('menu/');
-  if(menus.length==2) {
-    xlib.gomenu(parseInt(menus[1]));
-  }
 }
+
 function makeBackground () {
   var canvas = document.getElementById('canvas-answer-sheet'),
         con = canvas.getContext('2d');
-
     canvas.style.background = '#FFF';
-    // document.body.appendChild(canvas);
-
-    /**
-     * Grid Lines
-     */
     function grid() {
         var w = canvas.width,
             h = canvas.height;
@@ -54,6 +46,7 @@ var xlib = {
 
   getNextOp2: function() {
     let  k= this.toI($('#oplen'))-1;
+    if(k>1) k--;
     return this.getRandomArbitrary(Math.pow(10,k), Math.pow(10,k+1));
   },
 
