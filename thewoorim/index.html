@@ -3,170 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>우림미트 | The Woorim - 10년 전통의 한우 전문 기업</title>
+    <title>우림미트 | The Woorim - 10년 전통 한우 전문</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --primary-color: #8B0000; /* 깊은 한우 레드 */
-            --dark-color: #222;
-            --light-color: #f4f4f4;
-            --gold-color: #D4AF37;
-        }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans KR', sans-serif; line-height: 1.6; color: var(--dark-color); }
-        a { text-decoration: none; color: inherit; }
-        ul { list-style: none; }
 
-        /* Navigation */
-        nav {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 1rem 5%; background: #fff; position: fixed; width: 100%; top: 0; z-index: 1000;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .logo { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); }
-        .nav-links { display: flex; }
-        .nav-links li { margin-left: 2rem; font-weight: 500; }
+    body { font-family: 'Noto Sans KR', sans-serif; scroll-behavior: smooth; }
+    
+    /* 무한 루프 파트너 슬라이드 애니메이션 (기존 동일) */
+    @keyframes scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    .partner-track {
+        display: flex;
+        width: calc(250px * 10);
+        animation: scroll 20s linear infinite;
+    }
 
-        /* Hero Section */
-        #home {
-            height: 100vh;
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
-                        url('https://images.unsplash.com/photo-1558030006-450675393462?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: #fff; text-align: center; padding: 0 20px;
-        }
-        #home h1 { font-size: 3.5rem; margin-bottom: 1rem; }
-        #home p { font-size: 1.2rem; margin-bottom: 2rem; font-weight: 300; }
-        .cta-buttons { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-        .btn {
-            padding: 12px 30px; border-radius: 5px; font-weight: 700; transition: 0.3s;
-        }
-        .btn-primary { background: var(--primary-color); color: #fff; }
-        .btn-outline { border: 2px solid #fff; color: #fff; }
-        .btn:hover { transform: translateY(-3px); opacity: 0.9; }
-
-        /* Section Styling */
-        section { padding: 80px 10% 60px; text-align: center; }
-        .section-title { font-size: 2rem; margin-bottom: 3rem; position: relative; padding-bottom: 10px; }
-        .section-title::after {
-            content: ''; background: var(--primary-color); width: 50px; height: 3px;
-            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-        }
-
-        /* About Section */
-        #about .stats { display: flex; justify-content: space-around; margin-top: 40px; }
-        .stat-item h3 { font-size: 2.5rem; color: var(--primary-color); }
-
-        /* Shop Section */
-        #shop { background: var(--light-color); }
-        .shop-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .card { background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .card i { font-size: 3rem; color: var(--gold-color); margin-bottom: 20px; }
-        .card h3 { margin-bottom: 15px; }
-
-        /* Contact Section */
-        #contact .info { margin-top: 20px; font-size: 1.1rem; }
-        #contact .map-placeholder { background: #ddd; height: 300px; margin: 20px 0; display: flex; align-items: center; justify-content: center; }
-
-        /* Footer */
-        footer { background: var(--dark-color); color: #fff; padding: 40px 10%; text-align: center; }
-        
-        @media (max-width: 768px) {
-            #home h1 { font-size: 2.2rem; }
-            .nav-links { display: none; }
-        }
+    /* 부드러운 페이드 효과를 위한 추가 설정 */
+    .carousel-item {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        z-index: 0;
+        transition: opacity 1.2s ease-in-out; /* 1.2초 동안 부드럽게 전환 */
+    }
+    .carousel-item.active {
+        opacity: 1;
+        z-index: 10;
+    }
     </style>
 </head>
-<body>
 
-    <nav>
-        <div class="logo">THE WOORIM</div>
-        <ul class="nav-links">
-            <li><a href="#home">Home</a></li>
-            <li><a href="#about">회사소개</a></li>
-            <li><a href="#shop">쇼핑몰입점</a></li>
-            <li><a href="#contact">오시는길</a></li>
-        </ul>
+
+
+<body class="bg-white text-gray-800">
+
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex justify-between items-center">
+            <div class="text-2xl font-bold text-red-800 tracking-tighter">THE WOORIM</div>
+            <ul class="hidden md:flex space-x-8 font-medium">
+                <li><a href="#home" class="hover:text-red-700">Home</a></li>
+                <li><a href="#about" class="hover:text-red-700">회사소개</a></li>
+                <li><a href="#shop" class="hover:text-red-700">온라인몰</a></li>
+                <li><a href="#partners" class="hover:text-red-700">파트너</a></li>
+                <li><a href="#contact" class="hover:text-red-700">고객문의</a></li>
+            </ul>
+        </div>
     </nav>
 
-    <section id="home">
-        <p>충남 성거읍, 10년의 고집으로 지켜온 한우의 맛</p>
-        <h1>우림미트 (The Woorim)</h1>
-        <div class="cta-buttons">
-            <a href="https://nhlyvly.com/" target="_blank" class="btn btn-primary">소매 구매하기 (라이블리)</a>
-            <a href="https://nhlyvly.biz/" target="_blank" class="btn btn-outline">도매 문의 (라이블리)</a>
+<section id="home" class="relative h-screen overflow-hidden bg-black">
+    <div id="hero-carousel" class="relative h-full">
+        <div class="carousel-item active bg-[url('https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center">
+            <div class="w-full h-full bg-black/40 flex items-center justify-center text-white flex-col">
+                <p class="text-xl mb-4 font-light tracking-widest animate-bounce">10년의 고집, 성거읍의 자부심</p>
+                <h1 class="text-5xl md:text-7xl font-bold mb-8 drop-shadow-lg">Premium Hanwoo</h1>
+            </div>
+        </div>
+        <div class="carousel-item bg-[url('./assets/imgs/meat001.png')] bg-cover bg-center">
+            <div class="w-full h-full bg-black/40 flex items-center justify-center text-white flex-col">
+                <p class="text-xl mb-4 font-light tracking-widest">전국 수백여 오프라인 거래처가 증명하는</p>
+                <h1 class="text-5xl md:text-7xl font-bold mb-8 drop-shadow-lg">우림미트의 품질</h1>
+            </div>
+        </div>
+        <div class="carousel-item bg-[url('https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center">
+            <div class="w-full h-full bg-black/40 flex items-center justify-center text-white flex-col">
+                <p class="text-xl mb-4 font-light tracking-widest">HACCP 인증 위생 설비</p>
+                <h1 class="text-5xl md:text-7xl font-bold mb-8 drop-shadow-lg">신선한 직송 시스템</h1>
+            </div>
+        </div>
+        <div class="carousel-item bg-[url('https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center">
+            <div class="w-full h-full bg-black/40 flex items-center justify-center text-white flex-col">
+                <p class="text-xl mb-4 font-light tracking-widest">더욱 편리하게 만나는</p>
+                <h1 class="text-5xl md:text-7xl font-bold mb-8 drop-shadow-lg">The Woorim Online</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex space-x-4 z-30">
+        <button onclick="setSlide(0)" class="dot w-12 h-1 rounded-full bg-white/30 transition-all duration-300"></button>
+        <button onclick="setSlide(1)" class="dot w-12 h-1 rounded-full bg-white/30 transition-all duration-300"></button>
+        <button onclick="setSlide(2)" class="dot w-12 h-1 rounded-full bg-white/30 transition-all duration-300"></button>
+        <button onclick="setSlide(3)" class="dot w-12 h-1 rounded-full bg-white/30 transition-all duration-300"></button>
+    </div>
+</section>
+
+
+    <section id="about" class="py-24 max-w-7xl mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold mb-4">Who We Are</h2>
+        <div class="w-16 h-1 bg-red-800 mx-auto mb-8"></div>
+        <p class="text-lg text-gray-600 mb-16 max-w-2xl mx-auto">우림미트는 충청남도 성거읍에서 시작하여 10년 넘게 한우 가공 외길을 걸어왔습니다. 수많은 오프라인 파트너가 증명하는 고집스러운 품질을 이제 온라인에서 만나보세요.</p>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="p-8 bg-gray-50 rounded-2xl">
+                <div class="text-4xl font-bold text-red-800 mb-2">10+</div>
+                <div class="text-gray-500 text-sm">업력 (Years)</div>
+            </div>
+            <div class="p-8 bg-gray-50 rounded-2xl">
+                <div class="text-4xl font-bold text-red-800 mb-2">500+</div>
+                <div class="text-gray-500 text-sm">오프라인 거래처</div>
+            </div>
+            <div class="p-8 bg-gray-50 rounded-2xl">
+                <div class="text-4xl font-bold text-red-800 mb-2">100%</div>
+                <div class="text-gray-500 text-sm">HACCP 인증 완료</div>
+            </div>
         </div>
     </section>
 
-    <section id="about">
-        <h2 class="section-title">Who We Are</h2>
-        <p>우림미트는 10년 이상 오프라인 시장에서 신뢰를 쌓아온 한우 가공/유통 전문 기업입니다.<br>
-        철저한 위생 관리와 정직한 등급 선별로 가장 신선한 한우를 공급합니다.</p>
-        <div class="stats">
-            <div class="stat-item">
-                <h3>10+</h3>
-                <p>업력 (Years)</p>
-            </div>
-            <div class="stat-item">
-                <h3>500+</h3>
-                <p>거래처 (Partners)</p>
-            </div>
-            <div class="stat-item">
-                <h3>100%</h3>
-                <p>HACCP 인증</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="shop">
-        <h2 class="section-title">Online Channel</h2>
-        <div class="shop-cards">
-            <div class="card">
-                <i class="fas fa-shopping-basket"></i>
-                <h3>라이블리 소매몰</h3>
-                <p>가정에서 즐기는 프리미엄 한우를<br>산지 직송으로 만나보세요.</p>
-                <br>
-                <a href="https://nhlyvly.com/" target="_blank" style="color:var(--primary-color); font-weight:bold;">바로가기 ></a>
-            </div>
-            <div class="card">
-                <i class="fas fa-truck-moving"></i>
-                <h3>라이블리 도매몰</h3>
-                <p>전국 정육점, 식당 사업자 고객을 위한<br>합리적인 도매 공급을 약속합니다.</p>
-                <br>
-                <a href="https://nhlyvly.biz/" target="_blank" style="color:var(--primary-color); font-weight:bold;">바로가기 ></a>
+    <section id="shop" class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h2 class="text-3xl font-bold mb-12 uppercase tracking-wide">Lively Online Shop</h2>
+            <div class="grid md:grid-cols-2 gap-10">
+                <div class="bg-white p-10 rounded-3xl shadow-xl transition-transform hover:-translate-y-2">
+                    <i class="fas fa-user-friends text-4xl text-yellow-600 mb-6"></i>
+                    <h3 class="text-2xl font-bold mb-4">소매몰 (일반고객)</h3>
+                    <p class="text-gray-600 mb-8 leading-relaxed">우림미트의 신선한 한우를<br>가장 빠르게 집으로 배송받으세요.</p>
+                    <a href="https://nhlyvly.com/" target="_blank" class="inline-block bg-red-800 text-white px-8 py-3 rounded-full font-bold hover:bg-red-900">구매하기</a>
+                </div>
+                <div class="bg-white p-10 rounded-3xl shadow-xl transition-transform hover:-translate-y-2">
+                    <i class="fas fa-store text-4xl text-yellow-600 mb-6"></i>
+                    <h3 class="text-2xl font-bold mb-4">도매몰 (사업자 전용)</h3>
+                    <p class="text-gray-600 mb-8 leading-relaxed">식당, 정육점 파트너님을 위한<br>합리적인 B2B 공급가를 확인하세요.</p>
+                    <a href="https://nhlyvly.biz/" target="_blank" class="inline-block border-2 border-red-800 text-red-800 px-8 py-3 rounded-full font-bold hover:bg-red-50">방문하기</a>
+                </div>
             </div>
         </div>
     </section>
 
-    <section id="contact">
-        <h2 class="section-title">Contact Us</h2>
-        <div class="info">
-            <p><i class="fas fa-map-marker-alt"></i> 충청남도 천안시 서북구 성거읍 (우림미트)</p>
-            <p><i class="fas fa-phone"></i> 대표번호: 041-XXX-XXXX (전화번호를 입력하세요)</p>
-            <p><i class="fas fa-envelope"></i> 이메일: info@thewoorim.com</p>
-        </div>
-        <div class="map-placeholder">
-            [성거읍 우림미트 지도 위치 표시 영역]
+    <section id="partners" class="py-20 overflow-hidden bg-white">
+        <h2 class="text-center text-2xl font-bold mb-12 text-gray-700 uppercase"> 베스트 파트너</h2>
+        <div class="partner-track space-x-12">
+            <div class="flex items-center justify-center w-[200px] transition-all"><img src="./assets/imgs/partner/partner001.jpeg" alt="Partner 1"></div>
+            <div class="flex items-center justify-center w-[200px] transition-all"><img src="./assets/imgs/partner/partner002.jpeg" alt="Partner 2"></div>
+            <div class="flex items-center justify-center w-[200px] transition-all"><img src="./assets/imgs/partner/partner003.jpeg" alt="Partner 3"></div>
+            <div class="flex items-center justify-center w-[200px] transition-all"><img src="./assets/imgs/partner/partner004.jpeg" alt="Partner 4"></div>
+            <div class="flex items-center justify-center w-[200px] transition-all"><img src="./assets/imgs/partner/partner005.jpeg" alt="Partner 5"></div>
+            <div class="flex items-center justify-center w-[200px] transition-all"><img src="./assets/imgs/partner/partner006.jpeg" alt="Partner 1"></div>
+            <div class="flex items-center justify-center w-[200px] transition-all"><img src="./assets/imgs/partner/partner007.jpeg" alt="Partner 2"></div>
+            <div class="flex items-center justify-center w-[200px] transition-all"><img src="./assets/imgs/partner/partner008.jpeg" alt="Partner 3"></div>
+            <div class="flex items-center justify-center w-[200px] transition-all"><img src="./assets/imgs/partner/partner009.jpeg" alt="Partner 4"></div>
+            <div class="flex items-center justify-center w-[200px] transition-all"><img src="./assets/imgs/partner/partner010.jpeg" alt="Partner 5"></div>
         </div>
     </section>
 
-    <footer>
-        <p>&copy; 2024 우림미트(The Woorim). All Rights Reserved.</p>
-        <p style="font-size: 0.8rem; margin-top: 10px; opacity: 0.6;">사업자등록번호: XXX-XX-XXXXX | 대표: OOO</p>
+    <section id="contact" class="py-24 max-w-7xl mx-auto px-4">
+        <div class="flex flex-col md:flex-row gap-12 items-stretch">
+            <div class="md:w-1/2 min-h-[400px] bg-gray-200 flex p-2 items-center justify-center overflow-hidden">
+              <a href="https://naver.me/GNRkUyTy" target="_new">
+                <img src="./assets/imgs/woorim-meat-naver-map-01.png" class="border-2 border-blue-200"/>
+              </a>
+            </div>
+            <div class="md:w-1/2 flex flex-col justify-center">
+                <h2 class="text-3xl font-bold mb-2">Contact Us</h2>
+                <p class="text-gray-500 mb-10">우림미트는 언제나 파트너님의 문의를 환영합니다.</p>
+                
+                <div class="space-y-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="bg-red-800 p-3 rounded-lg text-white"><i class="fas fa-map-marker-alt"></i></div>
+                        <div>
+                            <h4 class="font-bold">주소</h4>
+                            <p class="text-gray-600">충청남도 천안시 서북구 성거읍 문성 1길 15 (ZIP: 31047)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="bg-red-800 p-3 rounded-lg text-white"><i class="fas fa-phone"></i></div>
+                        <div>
+                            <h4 class="font-bold">고객센터</h4>
+                            <p class="text-gray-600">041-000-0000 | 010-0000-0000</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="bg-red-800 p-3 rounded-lg text-white"><i class="fas fa-envelope"></i></div>
+                        <div>
+                            <h4 class="font-bold">이메일</h4>
+                            <p class="text-gray-600">sales@thewoorim.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-gray-400 py-12 px-4">
+        <div class="max-w-7xl mx-auto text-center">
+            <p class="mb-4">우림미트(The Woorim) | 대표자: OOO | 사업자등록번호: 000-00-00000</p>
+            <p>&copy; 2025 THE WOORIM. All Rights Reserved.</p>
+        </div>
     </footer>
 
     <script>
-        // Smooth Scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
+
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.carousel-item');
+    const dots = document.querySelectorAll('.dot');
+
+    function showSlide(index) {
+        // 모든 슬라이드에서 active 제거
+        slides.forEach(s => s.classList.remove('active'));
+        // 모든 도트 디자인 초기화
+        dots.forEach(d => {
+            d.classList.remove('bg-white', 'w-16');
+            d.classList.add('bg-white/30', 'w-12');
         });
+        
+        // 선택된 슬라이드 활성화
+        slides[index].classList.add('active');
+        // 선택된 도트 활성화 (길이가 길어지는 효과 추가)
+        dots[index].classList.remove('bg-white/30', 'w-12');
+        dots[index].classList.add('bg-white', 'w-16');
+    }
+
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
+        showSlide(currentSlide);
+    }
+
+    function setSlide(index) {
+        currentSlide = index;
+        showSlide(currentSlide);
+        resetTimer(); // 수동 클릭 시 타이머 리셋
+    }
+
+    // 5초 자동 회전 설정
+    let slideTimer = setInterval(nextSlide, 5000);
+
+    function resetTimer() {
+        clearInterval(slideTimer);
+        slideTimer = setInterval(nextSlide, 5000);
+    }
+
+    // 초기 실행
+    showSlide(0);
     </script>
 </body>
 </html>

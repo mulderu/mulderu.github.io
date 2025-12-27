@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우림미트 | The Woorim - 10년 전통의 한우 전문 기업</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #8B0000; /* 깊은 한우 레드 */
+            --dark-color: #222;
+            --light-color: #f4f4f4;
+            --gold-color: #D4AF37;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', sans-serif; line-height: 1.6; color: var(--dark-color); }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* Navigation */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 5%; background: #fff; position: fixed; width: 100%; top: 0; z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .logo { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); }
+        .nav-links { display: flex; }
+        .nav-links li { margin-left: 2rem; font-weight: 500; }
+
+        /* Hero Section */
+        #home {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                        url('https://images.unsplash.com/photo-1558030006-450675393462?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: #fff; text-align: center; padding: 0 20px;
+        }
+        #home h1 { font-size: 3.5rem; margin-bottom: 1rem; }
+        #home p { font-size: 1.2rem; margin-bottom: 2rem; font-weight: 300; }
+        .cta-buttons { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        .btn {
+            padding: 12px 30px; border-radius: 5px; font-weight: 700; transition: 0.3s;
+        }
+        .btn-primary { background: var(--primary-color); color: #fff; }
+        .btn-outline { border: 2px solid #fff; color: #fff; }
+        .btn:hover { transform: translateY(-3px); opacity: 0.9; }
+
+        /* Section Styling */
+        section { padding: 80px 10% 60px; text-align: center; }
+        .section-title { font-size: 2rem; margin-bottom: 3rem; position: relative; padding-bottom: 10px; }
+        .section-title::after {
+            content: ''; background: var(--primary-color); width: 50px; height: 3px;
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+        }
+
+        /* About Section */
+        #about .stats { display: flex; justify-content: space-around; margin-top: 40px; }
+        .stat-item h3 { font-size: 2.5rem; color: var(--primary-color); }
+
+        /* Shop Section */
+        #shop { background: var(--light-color); }
+        .shop-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .card i { font-size: 3rem; color: var(--gold-color); margin-bottom: 20px; }
+        .card h3 { margin-bottom: 15px; }
+
+        /* Contact Section */
+        #contact .info { margin-top: 20px; font-size: 1.1rem; }
+        #contact .map-placeholder { background: #ddd; height: 300px; margin: 20px 0; display: flex; align-items: center; justify-content: center; }
+
+        /* Footer */
+        footer { background: var(--dark-color); color: #fff; padding: 40px 10%; text-align: center; }
+        
+        @media (max-width: 768px) {
+            #home h1 { font-size: 2.2rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">THE WOORIM</div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">회사소개</a></li>
+            <li><a href="#shop">쇼핑몰입점</a></li>
+            <li><a href="#contact">오시는길</a></li>
+        </ul>
+    </nav>
+
+    <section id="home">
+        <p>충남 성거읍, 10년의 고집으로 지켜온 한우의 맛</p>
+        <h1>우림미트 (The Woorim)</h1>
+        <div class="cta-buttons">
+            <a href="https://nhlyvly.com/" target="_blank" class="btn btn-primary">소매 구매하기 (라이블리)</a>
+            <a href="https://nhlyvly.biz/" target="_blank" class="btn btn-outline">도매 문의 (라이블리)</a>
+        </div>
+    </section>
+
+    <section id="about">
+        <h2 class="section-title">Who We Are</h2>
+        <p>우림미트는 10년 이상 오프라인 시장에서 신뢰를 쌓아온 한우 가공/유통 전문 기업입니다.<br>
+        철저한 위생 관리와 정직한 등급 선별로 가장 신선한 한우를 공급합니다.</p>
+        <div class="stats">
+            <div class="stat-item">
+                <h3>10+</h3>
+                <p>업력 (Years)</p>
+            </div>
+            <div class="stat-item">
+                <h3>500+</h3>
+                <p>거래처 (Partners)</p>
+            </div>
+            <div class="stat-item">
+                <h3>100%</h3>
+                <p>HACCP 인증</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="shop">
+        <h2 class="section-title">Online Channel</h2>
+        <div class="shop-cards">
+            <div class="card">
+                <i class="fas fa-shopping-basket"></i>
+                <h3>라이블리 소매몰</h3>
+                <p>가정에서 즐기는 프리미엄 한우를<br>산지 직송으로 만나보세요.</p>
+                <br>
+                <a href="https://nhlyvly.com/" target="_blank" style="color:var(--primary-color); font-weight:bold;">바로가기 ></a>
+            </div>
+            <div class="card">
+                <i class="fas fa-truck-moving"></i>
+                <h3>라이블리 도매몰</h3>
+                <p>전국 정육점, 식당 사업자 고객을 위한<br>합리적인 도매 공급을 약속합니다.</p>
+                <br>
+                <a href="https://nhlyvly.biz/" target="_blank" style="color:var(--primary-color); font-weight:bold;">바로가기 ></a>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <h2 class="section-title">Contact Us</h2>
+        <div class="info">
+            <p><i class="fas fa-map-marker-alt"></i> 충남 천안시 서북구 성거읍 문성1길 15 (ZIP: 31047)</p>
+            <p><i class="fas fa-phone"></i> 대표번호: 041-XXX-XXXX (전화번호를 입력하세요)</p>
+            <p><i class="fas fa-envelope"></i> 이메일: info@thewoorim.com</p>
+        </div>
+        <div class="map-placeholder">
+        <a href="https://naver.me/GNRkUyTy" target="_new">
+          <img src="./assets/imgs/woorim-meat-naver-map-02.png" height="290" />
+        </a>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 우림미트(The Woorim). All Rights Reserved.</p>
+        <p style="font-size: 0.8rem; margin-top: 10px; opacity: 0.6;">사업자등록번호: XXX-XX-XXXXX | 대표: OOO</p>
+    </footer>
+
+    <script>
+        // Smooth Scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
