@@ -1,0 +1,21 @@
+# CREAM AI 홈페이지 concept
+
+- Cream CiTy제품 홍보가 중요한 회사 홈페이지
+- 기술적요청사항 : one page html/css(tailwind css)/javascript 
+
+1. Style: Dark theme, 인공지능 회사임을 알수 있는 배경이미지.
+2. Top menu : CreamCity, Company, Contact, Announce 
+2.1. CreamCity: 대표제품, 제품 소개, 데모 영상, 데모요청하기.
+2.2. Company: Cream AI 회사 소개, 대표원장님 소개, 회사 설립 및 업적 timelines 
+  - 회사이름 : 주식회사 크림에이아이
+  - 영문회사이름 : Cream A.I. 
+2.3. Contact: 회사정보 및 오시는길
+  - 상호명 : 주식회사 크림에이아이  
+  - 주소:  서울시 서초구 서초대로 411 GT타워 B1
+  - Tel: 02.563.0028
+  - FAX: 02.563.0083
+  - 사업자등록번호: 859-81-03510
+  - 대표자: 김정란
+3. Announce
+  - 간단한 블로그형식 게시판 (json data 기반으로 동작)
+  - 제목 리스트가 있고, 제목을 클릭하면 아래로 본문이 펼쳐진다.
