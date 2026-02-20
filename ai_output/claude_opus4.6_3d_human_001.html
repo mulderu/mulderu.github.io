@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Human Body — Interactive</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@300;400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #2a2a3a;
+    --accent: #00e5ff;
+    --accent2: #ff4d6d;
+    --text: #e0e0f0;
+    --muted: #555570;
+    --selected-glow: 0 0 30px rgba(0,229,255,0.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  #canvas-container {
+    position: fixed;
+    inset: 0;
+    cursor: crosshair;
+  }
+
+  canvas { display: block; }
+
+  /* HUD */
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+  }
+
+  #title {
+    position: absolute;
+    top: 32px; left: 40px;
+    pointer-events: none;
+  }
+
+  #title h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  #title h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    margin-top: 4px;
+  }
+
+  #info-panel {
+    position: absolute;
+    top: 32px; right: 40px;
+    background: rgba(18,18,26,0.85);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    min-width: 200px;
+    backdrop-filter: blur(12px);
+    pointer-events: none;
+  }
+
+  #info-panel .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  #selected-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    min-height: 28px;
+    transition: all 0.3s;
+  }
+
+  #selected-name.none { color: var(--muted); font-weight: 300; font-size: 14px; }
+
+  #mode-indicator {
+    margin-top: 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  #mode-indicator span {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    margin-right: 8px;
+    vertical-align: middle;
+    transition: background 0.3s;
+  }
+
+  #mode-indicator.active span { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+  /* Controls */
+  #controls {
+    position: absolute;
+    bottom: 32px; left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    pointer-events: all;
+  }
+
+  .ctrl-btn {
+    background: rgba(18,18,26,0.9);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    padding: 10px 20px;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ctrl-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* Axis selector */
+  #axis-panel {
+    position: absolute;
+    bottom: 32px; right: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: all;
+  }
+
+  .axis-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .axis-btns { display: flex; gap: 6px; }
+
+  .axis-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .axis-btn.x-btn:hover, .axis-btn.x-btn.active { border-color: #ff6b6b; color: #ff6b6b; background: rgba(255,107,107,0.1); }
+  .axis-btn.y-btn:hover, .axis-btn.y-btn.active { border-color: #69ff47; color: #69ff47; background: rgba(105,255,71,0.1); }
+  .axis-btn.z-btn:hover, .axis-btn.z-btn.active { border-color: #47b4ff; color: #47b4ff; background: rgba(71,180,255,0.1); }
+
+  #help {
+    position: absolute;
+    bottom: 32px; left: 40px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    line-height: 2;
+    pointer-events: none;
+  }
+
+  #help div::before { content: '›  '; }
+
+  /* Grid overlay */
+  #grid-lines {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="grid-lines"></div>
+<div id="canvas-container"></div>
+
+<div id="hud">
+  <div id="title">
+    <h1>Interactive 3D Model</h1>
+    <h2>Human Body</h2>
+  </div>
+
+  <div id="info-panel">
+    <div class="label">Selected Part</div>
+    <div id="selected-name" class="none">None</div>
+    <div id="mode-indicator">
+      <span></span>DRAG TO ROTATE
+    </div>
+  </div>
+
+  <div id="controls">
+    <button class="ctrl-btn active" id="btn-rotate">Rotate</button>
+    <button class="ctrl-btn" id="btn-translate">Translate</button>
+    <button class="ctrl-btn" id="btn-reset">Reset All</button>
+    <button class="ctrl-btn" id="btn-deselect">Deselect</button>
+  </div>
+
+  <div id="axis-panel">
+    <div class="axis-label">Axis Lock</div>
+    <div class="axis-btns">
+      <button class="axis-btn x-btn" id="axis-x">X</button>
+      <button class="axis-btn y-btn" id="axis-y">Y</button>
+      <button class="axis-btn z-btn" id="axis-z">Z</button>
+    </div>
+  </div>
+
+  <div id="help">
+    <div>Click a body part to select</div>
+    <div>Drag to rotate / move selected part</div>
+    <div>Drag empty space to orbit camera</div>
+    <div>Scroll to zoom</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── Scene Setup ───────────────────────────────────────────────────────────
+const container = document.getElementById('canvas-container');
+const W = () => window.innerWidth;
+const H = () => window.innerHeight;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(W(), H());
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0a0a0f, 0.04);
+
+const camera = new THREE.PerspectiveCamera(50, W()/H(), 0.1, 100);
+camera.position.set(0, 2, 8);
+camera.lookAt(0, 0, 0);
+
+// ─── Lights ────────────────────────────────────────────────────────────────
+const ambient = new THREE.AmbientLight(0x334466, 0.8);
+scene.add(ambient);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+dirLight.position.set(5, 10, 5);
+dirLight.castShadow = true;
+scene.add(dirLight);
+
+const rimLight = new THREE.DirectionalLight(0x00e5ff, 0.5);
+rimLight.position.set(-5, 3, -5);
+scene.add(rimLight);
+
+const pointLight = new THREE.PointLight(0xff4d6d, 0.4, 20);
+pointLight.position.set(-3, 5, 3);
+scene.add(pointLight);
+
+// ─── Ground ────────────────────────────────────────────────────────────────
+const gridHelper = new THREE.GridHelper(20, 20, 0x2a2a3a, 0x1a1a2a);
+gridHelper.position.y = -3.6;
+scene.add(gridHelper);
+
+// ─── Materials ─────────────────────────────────────────────────────────────
+function makeMat(color, emissive = 0x000000) {
+  return new THREE.MeshStandardMaterial({
+    color,
+    emissive,
+    roughness: 0.4,
+    metalness: 0.1,
+  });
+}
+
+const COLORS = {
+  head:      0xc8a882,
+  body:      0x3a6ea5,
+  leftArm:   0x5a9e6f,
+  rightArm:  0x5a9e6f,
+  leftLeg:   0x8e4fa5,
+  rightLeg:  0x8e4fa5,
+};
+
+const SELECTED_COLOR  = 0x00e5ff;
+const HOVER_COLOR     = 0x88ccff;
+
+// ─── Body Part Builder ─────────────────────────────────────────────────────
+const bodyParts = {};
+const pivots = {};
+
+function buildPart(name, geo, mat, parentPivot) {
+  const mesh = new THREE.Mesh(geo, mat.clone());
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.userData.partName = name;
+
+  const pivot = new THREE.Group();
+  pivot.add(mesh);
+
+  if (parentPivot) parentPivot.add(pivot);
+  else scene.add(pivot);
+
+  bodyParts[name] = mesh;
+  pivots[name] = pivot;
+  return { mesh, pivot };
+}
+
+// ─── Human Model Construction ──────────────────────────────────────────────
+// Root group
+const root = new THREE.Group();
+scene.add(root);
+
+// TORSO (body)
+const torsoGeo = new THREE.CylinderGeometry(0.55, 0.45, 1.6, 16);
+const torsoMat = makeMat(COLORS.body);
+const torso = new THREE.Mesh(torsoGeo, torsoMat);
+torso.userData.partName = 'body';
+torso.castShadow = true;
+root.add(torso);
+bodyParts['body'] = torso;
+pivots['body'] = root;
+
+// HEAD
+const headPivot = new THREE.Group();
+headPivot.position.set(0, 1.2, 0);
+root.add(headPivot);
+
+const headGeo = new THREE.SphereGeometry(0.42, 24, 24);
+const headMat = makeMat(COLORS.head);
+const head = new THREE.Mesh(headGeo, headMat);
+head.userData.partName = 'head';
+head.castShadow = true;
+head.position.set(0, 0.2, 0);
+headPivot.add(head);
+bodyParts['head'] = head;
+pivots['head'] = headPivot;
+
+// Neck
+const neckGeo = new THREE.CylinderGeometry(0.14, 0.16, 0.25, 12);
+const neck = new THREE.Mesh(neckGeo, headMat.clone());
+neck.position.set(0, 0, 0);
+headPivot.add(neck);
+
+// Face features
+const eyeGeo = new THREE.SphereGeometry(0.055, 8, 8);
+const eyeMat = new THREE.MeshStandardMaterial({ color: 0x111122, roughness: 0.1 });
+[-0.15, 0.15].forEach(x => {
+  const eye = new THREE.Mesh(eyeGeo, eyeMat);
+  eye.position.set(x, 0.25, 0.37);
+  headPivot.add(eye);
+});
+
+// Ears
+const earGeo = new THREE.SphereGeometry(0.08, 8, 8);
+[-0.43, 0.43].forEach(x => {
+  const ear = new THREE.Mesh(earGeo, headMat.clone());
+  ear.position.set(x, 0.2, 0);
+  headPivot.add(ear);
+});
+
+// LEFT ARM
+const leftShoulderPivot = new THREE.Group();
+leftShoulderPivot.position.set(-0.7, 0.6, 0);
+root.add(leftShoulderPivot);
+
+const upperArmGeo = new THREE.CylinderGeometry(0.15, 0.13, 0.8, 12);
+const leftArmMat = makeMat(COLORS.leftArm);
+const leftUpperArm = new THREE.Mesh(upperArmGeo, leftArmMat);
+leftUpperArm.position.set(0, -0.4, 0);
+leftUpperArm.userData.partName = 'leftArm';
+leftUpperArm.castShadow = true;
+leftShoulderPivot.add(leftUpperArm);
+
+// Shoulder ball
+const shoulderBallGeo = new THREE.SphereGeometry(0.18, 12, 12);
+const leftShoulder = new THREE.Mesh(shoulderBallGeo, leftArmMat.clone());
+leftShoulderPivot.add(leftShoulder);
+
+// Left elbow + forearm
+const leftElbowPivot = new THREE.Group();
+leftElbowPivot.position.set(0, -0.8, 0);
+leftShoulderPivot.add(leftElbowPivot);
+
+const forearmGeo = new THREE.CylinderGeometry(0.12, 0.1, 0.7, 12);
+const leftForearm = new THREE.Mesh(forearmGeo, leftArmMat.clone());
+leftForearm.position.set(0, -0.35, 0);
+leftForearm.castShadow = true;
+leftElbowPivot.add(leftForearm);
+
+// Left hand
+const handGeo = new THREE.SphereGeometry(0.12, 10, 10);
+const leftHand = new THREE.Mesh(handGeo, leftArmMat.clone());
+leftHand.position.set(0, -0.7, 0);
+leftElbowPivot.add(leftHand);
+
+bodyParts['leftArm'] = leftUpperArm;
+pivots['leftArm'] = leftShoulderPivot;
+
+// RIGHT ARM (mirror)
+const rightShoulderPivot = new THREE.Group();
+rightShoulderPivot.position.set(0.7, 0.6, 0);
+root.add(rightShoulderPivot);
+
+const rightArmMat = makeMat(COLORS.rightArm);
+const rightUpperArm = new THREE.Mesh(upperArmGeo.clone(), rightArmMat);
+rightUpperArm.position.set(0, -0.4, 0);
+rightUpperArm.userData.partName = 'rightArm';
+rightUpperArm.castShadow = true;
+rightShoulderPivot.add(rightUpperArm);
+
+const rightShoulder = new THREE.Mesh(shoulderBallGeo.clone(), rightArmMat.clone());
+rightShoulderPivot.add(rightShoulder);
+
+const rightElbowPivot = new THREE.Group();
+rightElbowPivot.position.set(0, -0.8, 0);
+rightShoulderPivot.add(rightElbowPivot);
+
+const rightForearm = new THREE.Mesh(forearmGeo.clone(), rightArmMat.clone());
+rightForearm.position.set(0, -0.35, 0);
+rightForearm.castShadow = true;
+rightElbowPivot.add(rightForearm);
+
+const rightHand = new THREE.Mesh(handGeo.clone(), rightArmMat.clone());
+rightHand.position.set(0, -0.7, 0);
+rightElbowPivot.add(rightHand);
+
+bodyParts['rightArm'] = rightUpperArm;
+pivots['rightArm'] = rightShoulderPivot;
+
+// HIPS
+const hipGeo = new THREE.CylinderGeometry(0.48, 0.42, 0.35, 16);
+const hipMat = makeMat(0x2d5080);
+const hip = new THREE.Mesh(hipGeo, hipMat);
+hip.position.set(0, -0.97, 0);
+root.add(hip);
+
+// LEFT LEG
+const leftHipPivot = new THREE.Group();
+leftHipPivot.position.set(-0.25, -1.15, 0);
+root.add(leftHipPivot);
+
+const thighGeo = new THREE.CylinderGeometry(0.2, 0.17, 0.9, 12);
+const leftLegMat = makeMat(COLORS.leftLeg);
+const leftThigh = new THREE.Mesh(thighGeo, leftLegMat);
+leftThigh.position.set(0, -0.45, 0);
+leftThigh.userData.partName = 'leftLeg';
+leftThigh.castShadow = true;
+leftHipPivot.add(leftThigh);
+
+const leftKneePivot = new THREE.Group();
+leftKneePivot.position.set(0, -0.9, 0);
+leftHipPivot.add(leftKneePivot);
+
+const shinGeo = new THREE.CylinderGeometry(0.15, 0.1, 0.85, 12);
+const leftShin = new THREE.Mesh(shinGeo, leftLegMat.clone());
+leftShin.position.set(0, -0.42, 0);
+leftShin.castShadow = true;
+leftKneePivot.add(leftShin);
+
+// Left foot
+const footGeo = new THREE.BoxGeometry(0.18, 0.1, 0.35);
+const leftFoot = new THREE.Mesh(footGeo, leftLegMat.clone());
+leftFoot.position.set(0, -0.9, 0.08);
+leftKneePivot.add(leftFoot);
+
+bodyParts['leftLeg'] = leftThigh;
+pivots['leftLeg'] = leftHipPivot;
+
+// RIGHT LEG
+const rightHipPivot = new THREE.Group();
+rightHipPivot.position.set(0.25, -1.15, 0);
+root.add(rightHipPivot);
+
+const rightLegMat = makeMat(COLORS.rightLeg);
+const rightThigh = new THREE.Mesh(thighGeo.clone(), rightLegMat);
+rightThigh.position.set(0, -0.45, 0);
+rightThigh.userData.partName = 'rightLeg';
+rightThigh.castShadow = true;
+rightHipPivot.add(rightThigh);
+
+const rightKneePivot = new THREE.Group();
+rightKneePivot.position.set(0, -0.9, 0);
+rightHipPivot.add(rightKneePivot);
+
+const rightShin = new THREE.Mesh(shinGeo.clone(), rightLegMat.clone());
+rightShin.position.set(0, -0.42, 0);
+rightShin.castShadow = true;
+rightKneePivot.add(rightShin);
+
+const rightFoot = new THREE.Mesh(footGeo.clone(), rightLegMat.clone());
+rightFoot.position.set(0, -0.9, 0.08);
+rightKneePivot.add(rightFoot);
+
+bodyParts['rightLeg'] = rightThigh;
+pivots['rightLeg'] = rightHipPivot;
+
+// Position root
+root.position.y = 1.5;
+
+// ─── Original states for reset ─────────────────────────────────────────────
+const origRotations = {};
+const origPositions = {};
+for (const name in pivots) {
+  origRotations[name] = pivots[name].rotation.clone();
+  origPositions[name] = pivots[name].position.clone();
+}
+const origRootRot = root.rotation.clone();
+const origRootPos = root.position.clone();
+
+// ─── Interaction State ─────────────────────────────────────────────────────
+const raycaster = new THREE.Raycaster();
+const mouse     = new THREE.Vector2();
+
+let selectedPart = null;
+let hoveredPart  = null;
+let mode         = 'rotate'; // 'rotate' | 'translate'
+let axisLock     = null; // null | 'x' | 'y' | 'z'
+
+let isDragging   = false;
+let isOnPart     = false;
+let prevMouse    = { x: 0, y: 0 };
+
+// Camera orbit state
+let camTheta = 0;
+let camPhi   = Math.PI / 6;
+let camRadius = 8;
+const camTarget = new THREE.Vector3(0, 1.5, 0);
+
+// ─── Color Management ──────────────────────────────────────────────────────
+const origColors = {};
+for (const name in bodyParts) {
+  origColors[name] = bodyParts[name].material.color.getHex();
+}
+
+function setPartColor(name, colorHex) {
+  const mesh = bodyParts[name];
+  if (!mesh) return;
+  // Set color on this mesh + its siblings in the pivot
+  mesh.material.color.setHex(colorHex);
+}
+
+function highlightSelected(name) {
+  // Reset all
+  for (const n in bodyParts) {
+    if (n !== name) bodyParts[n].material.color.setHex(COLORS[n] || origColors[n]);
+    bodyParts[n].material.emissive.setHex(0x000000);
+  }
+  if (name) {
+    bodyParts[name].material.color.setHex(SELECTED_COLOR);
+    bodyParts[name].material.emissive.setHex(0x003344);
+  }
+}
+
+// ─── UI Updates ────────────────────────────────────────────────────────────
+const selectedName = document.getElementById('selected-name');
+const modeIndicator = document.getElementById('mode-indicator');
+
+function updateHUD() {
+  if (selectedPart) {
+    selectedName.textContent = selectedPart.charAt(0).toUpperCase() + selectedPart.slice(1);
+    selectedName.className = '';
+    modeIndicator.className = 'active';
+    modeIndicator.innerHTML = `<span></span>${mode === 'rotate' ? 'DRAG TO ROTATE' : 'DRAG TO MOVE'}`;
+  } else {
+    selectedName.textContent = 'None';
+    selectedName.className = 'none';
+    modeIndicator.className = '';
+    modeIndicator.innerHTML = '<span></span>ORBIT CAMERA';
+  }
+}
+
+// ─── Raycasting ────────────────────────────────────────────────────────────
+function getMeshesForRaycasting() {
+  return Object.values(bodyParts);
+}
+
+function getPartFromMesh(mesh) {
+  if (!mesh) return null;
+  if (mesh.userData.partName) return mesh.userData.partName;
+  return null;
+}
+
+function castRay(event) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const meshes = getMeshesForRaycasting();
+  const hits = raycaster.intersectObjects(meshes);
+  return hits.length > 0 ? getPartFromMesh(hits[0].object) : null;
+}
+
+// ─── Mouse Events ──────────────────────────────────────────────────────────
+renderer.domElement.addEventListener('mousedown', (e) => {
+  isDragging = false;
+  prevMouse = { x: e.clientX, y: e.clientY };
+
+  const hit = castRay(e);
+  isOnPart = !!hit;
+
+  if (hit) {
+    selectedPart = hit;
+    highlightSelected(selectedPart);
+    updateHUD();
+  }
+});
+
+renderer.domElement.addEventListener('mousemove', (e) => {
+  const dx = e.clientX - prevMouse.x;
+  const dy = e.clientY - prevMouse.y;
+
+  if (Math.abs(dx) > 2 || Math.abs(dy) > 2) isDragging = true;
+
+  // Hover
+  if (!isDragging) {
+    const hit = castRay(e);
+    if (hit !== hoveredPart) {
+      // reset hover on old
+      if (hoveredPart && hoveredPart !== selectedPart) {
+        bodyParts[hoveredPart].material.color.setHex(COLORS[hoveredPart] || origColors[hoveredPart]);
+      }
+      hoveredPart = hit;
+      if (hoveredPart && hoveredPart !== selectedPart) {
+        bodyParts[hoveredPart].material.color.setHex(HOVER_COLOR);
+      }
+      renderer.domElement.style.cursor = hit ? 'pointer' : 'crosshair';
+    }
+    prevMouse = { x: e.clientX, y: e.clientY };
+    return;
+  }
+
+  if (e.buttons !== 1) { prevMouse = { x: e.clientX, y: e.clientY }; return; }
+
+  if (selectedPart && isOnPart) {
+    const pivot = pivots[selectedPart];
+    if (!pivot) return;
+
+    if (mode === 'rotate') {
+      const speed = 0.012;
+      if (axisLock === 'x') {
+        pivot.rotation.x += dy * speed;
+      } else if (axisLock === 'y') {
+        pivot.rotation.y += dx * speed;
+      } else if (axisLock === 'z') {
+        pivot.rotation.z += dx * speed;
+      } else {
+        pivot.rotation.y += dx * speed;
+        pivot.rotation.x += dy * speed;
+        // Clamp arm/leg rotations
+        if (selectedPart.includes('Arm')) {
+          pivot.rotation.x = Math.max(-Math.PI * 0.8, Math.min(Math.PI * 0.8, pivot.rotation.x));
+        }
+        if (selectedPart.includes('Leg')) {
+          pivot.rotation.x = Math.max(-Math.PI * 0.6, Math.min(Math.PI * 0.3, pivot.rotation.x));
+        }
+        if (selectedPart === 'head') {
+          pivot.rotation.x = Math.max(-0.6, Math.min(0.6, pivot.rotation.x));
+          pivot.rotation.y = Math.max(-1.2, Math.min(1.2, pivot.rotation.y));
+        }
+      }
+    } else {
+      // translate
+      const speed = 0.008;
+      if (axisLock === 'x') {
+        pivot.position.x += dx * speed;
+      } else if (axisLock === 'y') {
+        pivot.position.y -= dy * speed;
+      } else if (axisLock === 'z') {
+        pivot.position.z += dx * speed;
+      } else {
+        pivot.position.x += dx * speed;
+        pivot.position.y -= dy * speed;
+      }
+    }
+  } else {
+    // Orbit camera
+    const speed = 0.006;
+    camTheta -= dx * speed;
+    camPhi   -= dy * speed;
+    camPhi = Math.max(0.1, Math.min(Math.PI * 0.8, camPhi));
+    updateCamera();
+  }
+
+  prevMouse = { x: e.clientX, y: e.clientY };
+});
+
+renderer.domElement.addEventListener('mouseup', () => {
+  if (!isDragging) {
+    // Click without drag — already handled in mousedown
+  }
+  isDragging = false;
+});
+
+renderer.domElement.addEventListener('wheel', (e) => {
+  camRadius += e.deltaY * 0.01;
+  camRadius = Math.max(3, Math.min(18, camRadius));
+  updateCamera();
+});
+
+function updateCamera() {
+  camera.position.x = camTarget.x + camRadius * Math.sin(camPhi) * Math.sin(camTheta);
+  camera.position.y = camTarget.y + camRadius * Math.cos(camPhi);
+  camera.position.z = camTarget.z + camRadius * Math.sin(camPhi) * Math.cos(camTheta);
+  camera.lookAt(camTarget);
+}
+updateCamera();
+
+// ─── UI Buttons ────────────────────────────────────────────────────────────
+document.getElementById('btn-rotate').addEventListener('click', () => {
+  mode = 'rotate';
+  document.getElementById('btn-rotate').classList.add('active');
+  document.getElementById('btn-translate').classList.remove('active');
+  updateHUD();
+});
+
+document.getElementById('btn-translate').addEventListener('click', () => {
+  mode = 'translate';
+  document.getElementById('btn-translate').classList.add('active');
+  document.getElementById('btn-rotate').classList.remove('active');
+  updateHUD();
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  for (const name in pivots) {
+    pivots[name].rotation.copy(origRotations[name]);
+    pivots[name].position.copy(origPositions[name]);
+  }
+  root.rotation.copy(origRootRot);
+  root.position.copy(origRootPos);
+  selectedPart = null;
+  highlightSelected(null);
+  updateHUD();
+});
+
+document.getElementById('btn-deselect').addEventListener('click', () => {
+  selectedPart = null;
+  highlightSelected(null);
+  updateHUD();
+});
+
+// Axis buttons
+['x','y','z'].forEach(axis => {
+  const btn = document.getElementById(`axis-${axis}`);
+  btn.addEventListener('click', () => {
+    if (axisLock === axis) {
+      axisLock = null;
+      btn.classList.remove('active');
+    } else {
+      axisLock = axis;
+      ['x','y','z'].forEach(a => document.getElementById(`axis-${a}`).classList.remove('active'));
+      btn.classList.add('active');
+    }
+  });
+});
+
+// ─── Render Loop ──────────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  // Subtle body sway
+  if (!selectedPart || selectedPart !== 'body') {
+    root.rotation.z = Math.sin(t * 0.5) * 0.01;
+  }
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// ─── Resize ────────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = W() / H();
+  camera.updateProjectionMatrix();
+  renderer.setSize(W(), H());
+});
+
+updateHUD();
+</script>
+</body>
+</html>

@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLATE DODGE — 접시 피하기</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #060810;
+  --red: #ff2244;
+  --cyan: #00ffcc;
+  --yellow: #ffdd00;
+  --white: #f0f0ff;
+  --muted: #445566;
+  --panel: rgba(6,8,16,0.92);
+}
+
+body {
+  background: var(--bg);
+  overflow: hidden;
+  font-family: 'Barlow Condensed', sans-serif;
+  user-select: none;
+  color: var(--white);
+}
+
+#canvas-wrap {
+  position: fixed; inset: 0;
+}
+
+canvas { display: block; }
+
+/* ── HUD ── */
+#hud {
+  position: fixed; inset: 0;
+  pointer-events: none;
+}
+
+#score-panel {
+  position: absolute;
+  top: 24px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 24px; align-items: center;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(0,255,204,0.25);
+  border-radius: 60px;
+  padding: 10px 28px;
+  backdrop-filter: blur(10px);
+  pointer-events: all;
+  z-index: 10;
+}
+
+.stat { text-align: center; }
+.stat-label {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.stat-value {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 32px;
+  line-height: 1;
+  color: var(--cyan);
+}
+#score-panel .divider {
+  width: 1px; height: 40px;
+  background: rgba(0,255,204,0.15);
+}
+
+#danger-bar-wrap {
+  position: absolute;
+  top: 100px; left: 50%; transform: translateX(-50%);
+  width: 300px; display: none;
+}
+#danger-bar-wrap .label {
+  font-size: 9px; letter-spacing: 0.25em; color: var(--red);
+  text-align: center; margin-bottom: 4px;
+}
+#danger-bar {
+  width: 100%; height: 4px;
+  background: rgba(255,34,68,0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+#danger-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--yellow), var(--red));
+  width: 0%;
+  transition: width 0.3s;
+}
+
+/* ── SCREENS ── */
+.screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 100;
+  pointer-events: all;
+}
+
+/* START */
+#start-screen {
+  background: radial-gradient(ellipse at 50% 40%, #0d1a2a 0%, #060810 70%);
+}
+
+#start-screen::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(0,255,204,0.03) 60px),
+    repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(0,255,204,0.03) 60px);
+  pointer-events: none;
+}
+
+.game-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: clamp(60px, 12vw, 120px);
+  letter-spacing: 0.08em;
+  line-height: 0.85;
+  text-align: center;
+  position: relative;
+}
+
+.game-title .line1 {
+  color: var(--white);
+  display: block;
+}
+.game-title .line2 {
+  color: var(--red);
+  display: block;
+  text-shadow: 0 0 40px rgba(255,34,68,0.5);
+}
+.game-title .line3 {
+  font-size: 0.35em;
+  letter-spacing: 0.5em;
+  color: var(--cyan);
+  display: block;
+  margin-top: 8px;
+}
+
+.plate-preview {
+  margin: 32px auto;
+  width: 80px; height: 80px;
+  position: relative;
+  animation: spin3d 3s linear infinite;
+}
+
+@keyframes spin3d {
+  from { transform: rotateX(-20deg) rotateY(0deg); }
+  to   { transform: rotateX(-20deg) rotateY(360deg); }
+}
+
+.plate-svg {
+  width: 100%; height: auto;
+  filter: drop-shadow(0 0 20px rgba(0,255,204,0.6));
+}
+
+.start-btn {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 22px;
+  letter-spacing: 0.3em;
+  background: transparent;
+  border: 2px solid var(--cyan);
+  color: var(--cyan);
+  padding: 16px 60px;
+  cursor: pointer;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+  margin-top: 8px;
+}
+
+.start-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--cyan);
+  transform: translateX(-101%);
+  transition: transform 0.3s;
+}
+
+.start-btn:hover::before { transform: translateX(0); }
+.start-btn:hover { color: var(--bg); }
+.start-btn span { position: relative; z-index: 1; }
+
+.controls-info {
+  margin-top: 40px;
+  display: flex; gap: 24px;
+  opacity: 0.5;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+}
+
+.controls-info .key {
+  display: inline-block;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 15px;
+  margin-right: 4px;
+}
+
+/* GAME OVER */
+#gameover-screen {
+  background: radial-gradient(ellipse at 50% 50%, #1a0508 0%, #060810 70%);
+  display: none;
+}
+
+.go-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: clamp(50px, 10vw, 100px);
+  letter-spacing: 0.1em;
+  color: var(--red);
+  text-shadow: 0 0 60px rgba(255,34,68,0.7);
+  animation: flicker 0.15s infinite alternate;
+}
+
+@keyframes flicker {
+  from { opacity: 1; }
+  to   { opacity: 0.9; }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 40px 0;
+  min-width: 360px;
+  border: 1px solid rgba(255,34,68,0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stat-cell {
+  background: rgba(255,34,68,0.06);
+  padding: 20px 24px;
+  text-align: center;
+}
+.stat-cell .lbl {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.stat-cell .val {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 40px;
+  color: var(--yellow);
+  line-height: 1;
+}
+.stat-cell.full { grid-column: 1/-1; }
+
+.restart-btn {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 20px;
+  letter-spacing: 0.3em;
+  background: var(--red);
+  border: none;
+  color: white;
+  padding: 18px 70px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  box-shadow: 0 0 30px rgba(255,34,68,0.4);
+}
+.restart-btn:hover {
+  background: #ff4466;
+  transform: scale(1.04);
+  box-shadow: 0 0 50px rgba(255,34,68,0.6);
+}
+
+/* hit flash */
+#hit-flash {
+  position: fixed; inset: 0;
+  background: rgba(255,34,68,0.6);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 200;
+  transition: opacity 0.05s;
+}
+
+/* arrows indicator */
+#arrow-hint {
+  position: absolute;
+  bottom: 24px; right: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 32px);
+  grid-template-rows: repeat(2, 32px);
+  gap: 4px;
+  opacity: 0.3;
+}
+.arrow-key {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  color: var(--white);
+  transition: all 0.1s;
+}
+.arrow-key.active {
+  background: rgba(0,255,204,0.2);
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+.arrow-key.up { grid-column: 2; grid-row: 1; }
+.arrow-key.left { grid-column: 1; grid-row: 2; }
+.arrow-key.down { grid-column: 2; grid-row: 2; }
+.arrow-key.right { grid-column: 3; grid-row: 2; }
+
+/* speed indicator */
+#speed-label {
+  position: absolute;
+  top: 24px; right: 24px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-align: right;
+}
+#speed-label span {
+  display: block;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 24px;
+  color: var(--yellow);
+  margin-top: 2px;
+}
+
+/* mute btn */
+#mute-btn {
+  position: absolute;
+  bottom: 24px; left: 24px;
+  font-size: 20px;
+  cursor: pointer;
+  pointer-events: all;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  user-select: none;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+}
+#mute-btn:hover { opacity: 1; }
+
+/* pause button inside score panel */
+#pause-btn {
+  font-size: 16px;
+  background: rgba(0,255,204,0.12);
+  border: 1px solid rgba(0,255,204,0.5);
+  color: var(--cyan);
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: all;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+#pause-btn:hover {
+  background: rgba(0,255,204,0.28);
+  border-color: var(--cyan);
+  transform: scale(1.12);
+  box-shadow: 0 0 14px rgba(0,255,204,0.4);
+}
+#pause-btn.paused {
+  color: var(--yellow);
+  border-color: var(--yellow);
+  background: rgba(255,221,0,0.15);
+  box-shadow: 0 0 14px rgba(255,221,0,0.3);
+}
+
+/* ── PAUSE SCREEN ── */
+#pause-screen {
+  position: fixed; inset: 0;
+  z-index: 90;
+  display: none;
+  align-items: center; justify-content: center;
+  background: rgba(6,8,16,0.72);
+  backdrop-filter: blur(6px);
+  pointer-events: none; /* 마우스 카메라 조작 통과 */
+}
+#pause-screen.active { display: flex; }
+
+#pause-inner {
+  pointer-events: all; /* 버튼만 클릭 가능 */
+  text-align: center;
+  background: rgba(10,12,24,0.9);
+  border: 1px solid rgba(0,255,204,0.2);
+  border-radius: 16px;
+  padding: 44px 56px;
+  box-shadow: 0 0 60px rgba(0,255,204,0.08);
+}
+
+.pause-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 72px;
+  letter-spacing: 0.15em;
+  color: var(--cyan);
+  text-shadow: 0 0 40px rgba(0,255,204,0.5);
+  line-height: 1;
+  animation: pausePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pausePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.pause-sub {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  margin-top: 8px;
+  text-transform: uppercase;
+}
+
+.pause-stats {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  margin: 32px 0;
+}
+
+.ps-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.ps-lbl {
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.ps-val {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 36px;
+  color: var(--yellow);
+  line-height: 1;
+}
+
+#resume-btn {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 20px;
+  letter-spacing: 0.3em;
+  background: transparent;
+  border: 2px solid var(--cyan);
+  color: var(--cyan);
+  padding: 14px 52px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+#resume-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--cyan);
+  transform: translateX(-101%);
+  transition: transform 0.25s;
+}
+#resume-btn:hover::before { transform: translateX(0); }
+#resume-btn:hover { color: var(--bg); }
+#resume-btn span { position: relative; z-index: 1; }
+
+.pause-hint {
+  margin-top: 16px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+</style>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div class="screen" id="start-screen">
+  <div class="game-title">
+    <span class="line1">PLATE</span>
+    <span class="line2">DODGE</span>
+    <span class="line3">접시를 피하라</span>
+  </div>
+
+  <div class="plate-preview">
+    <svg class="plate-svg" viewBox="0 0 80 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="20" rx="38" ry="8" fill="#224" stroke="#00ffcc" stroke-width="1.5"/>
+      <ellipse cx="40" cy="15" rx="30" ry="6" fill="#1a3344" stroke="#00ccaa" stroke-width="1"/>
+      <ellipse cx="40" cy="12" rx="14" ry="4" fill="#22445566" stroke="#00ffcc" stroke-width="0.8"/>
+      <ellipse cx="40" cy="20" rx="38" ry="8" fill="none" stroke="rgba(0,255,204,0.3)" stroke-width="6"/>
+    </svg>
+  </div>
+
+  <button class="start-btn" id="start-btn"><span>▶ 게임 시작</span></button>
+
+  <div class="controls-info">
+    <div><span class="key">↑</span><span class="key">↓</span><span class="key">←</span><span class="key">→</span> 이동</div>
+    <div>접시에 맞으면 게임 종료</div>
+  </div>
+</div>
+
+<!-- GAME OVER SCREEN -->
+<div class="screen" id="gameover-screen">
+  <div class="go-title">GAME OVER</div>
+  <div class="stats-grid">
+    <div class="stat-cell">
+      <div class="lbl">최종 점수</div>
+      <div class="val" id="final-score">0</div>
+    </div>
+    <div class="stat-cell">
+      <div class="lbl">생존 시간</div>
+      <div class="val" id="final-time">0s</div>
+    </div>
+    <div class="stat-cell">
+      <div class="lbl">피한 접시</div>
+      <div class="val" id="final-dodged">0</div>
+    </div>
+    <div class="stat-cell">
+      <div class="lbl">최고 레벨</div>
+      <div class="val" id="final-level">1</div>
+    </div>
+  </div>
+  <button class="restart-btn" id="restart-btn">↺ 다시 시작</button>
+</div>
+
+<!-- HUD -->
+<div id="hud" style="display:none;">
+  <div id="score-panel">
+    <div class="stat">
+      <div class="stat-label">SCORE</div>
+      <div class="stat-value" id="score-display">0</div>
+    </div>
+    <div class="divider"></div>
+    <div class="stat">
+      <div class="stat-label">TIME</div>
+      <div class="stat-value" id="time-display">0s</div>
+    </div>
+    <div class="divider"></div>
+    <div class="stat">
+      <div class="stat-label">LEVEL</div>
+      <div class="stat-value" id="level-display">1</div>
+    </div>
+    <div class="divider"></div>
+    <button id="pause-btn" title="일시정지 (P)">⏸</button>
+  </div>
+
+  <div id="danger-bar-wrap">
+    <div class="label">⚠ DANGER</div>
+    <div id="danger-bar"><div id="danger-fill"></div></div>
+  </div>
+
+  <div id="speed-label">
+    SPEED
+    <span id="speed-display">1.0×</span>
+  </div>
+
+  <div id="arrow-hint">
+    <div class="arrow-key up" id="key-up">↑</div>
+    <div class="arrow-key left" id="key-left">←</div>
+    <div class="arrow-key down" id="key-down">↓</div>
+    <div class="arrow-key right" id="key-right">→</div>
+  </div>
+
+  <div id="help" style="position:absolute;bottom:24px;left:70px;font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);line-height:2;pointer-events:none;">
+    <div>우클릭 드래그 → 카메라 회전</div>
+    <div>스크롤 → 줌 인/아웃</div>
+  </div>
+
+  <div id="mute-btn" title="사운드 토글" style="pointer-events:all;">🔊</div>
+</div>
+
+<!-- PAUSE OVERLAY -->
+<div id="pause-screen">
+  <div id="pause-inner">
+    <div class="pause-title">PAUSED</div>
+    <div class="pause-sub">일시정지 중 — 카메라 조작 가능</div>
+    <div class="pause-stats">
+      <div class="ps-item"><span class="ps-lbl">점수</span><span class="ps-val" id="pause-score">0</span></div>
+      <div class="ps-item"><span class="ps-lbl">시간</span><span class="ps-val" id="pause-time">0s</span></div>
+      <div class="ps-item"><span class="ps-lbl">레벨</span><span class="ps-val" id="pause-level">1</span></div>
+    </div>
+    <button id="resume-btn">▶ 재개</button>
+    <div class="pause-hint">[P] 키 또는 버튼으로 재개</div>
+  </div>
+</div>
+
+<div id="hit-flash"></div>
+<div id="canvas-wrap"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ════════════════════════════════════════════════
+//  AUDIO ENGINE  (Web Audio API — 100% procedural)
+// ════════════════════════════════════════════════
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let actx = null;
+
+function ensureAudio() {
+  if (!actx) actx = new AudioCtx();
+  if (actx.state === 'suspended') actx.resume();
+}
+
+// ── Master buses ──
+function getMaster() {
+  if (!actx) return null;
+  if (!getMaster._node) {
+    const g = actx.createGain();
+    g.gain.value = 0.7;
+    g.connect(actx.destination);
+    getMaster._node = g;
+  }
+  return getMaster._node;
+}
+
+// ── Reverb (convolver via impulse) ──
+function makeReverb(duration = 1.5, decay = 2.0) {
+  const sr = actx.sampleRate;
+  const len = sr * duration;
+  const buf = actx.createBuffer(2, len, sr);
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c);
+    for (let i = 0; i < len; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+  }
+  const conv = actx.createConvolver();
+  conv.buffer = buf;
+  return conv;
+}
+
+// ─────────────────────────────────────────────
+//  BGM — atmospheric sci-fi drone
+// ─────────────────────────────────────────────
+let bgmNodes = [];
+let bgmRunning = false;
+
+function startBGM() {
+  if (!actx || bgmRunning) return;
+  bgmRunning = true;
+  bgmNodes = [];
+
+  const master = getMaster();
+  const rev = makeReverb(3, 1.5);
+  rev.connect(master);
+
+  const bgmGain = actx.createGain();
+  bgmGain.gain.value = 0;
+  bgmGain.connect(rev);
+  bgmGain.connect(master);
+
+  // Fade in
+  bgmGain.gain.linearRampToValueAtTime(0.18, actx.currentTime + 2);
+  bgmNodes.push(bgmGain);
+
+  // Drone layers: deep pad + mid + hi shimmer
+  const drones = [
+    { freq: 55,  type: 'sine',     vol: 0.6 },
+    { freq: 82.4,type: 'sine',     vol: 0.3 },
+    { freq: 110, type: 'triangle', vol: 0.15 },
+    { freq: 165, type: 'sine',     vol: 0.08 },
+    { freq: 220, type: 'sine',     vol: 0.04 },
+  ];
+
+  drones.forEach(({ freq, type, vol }) => {
+    const osc = actx.createOscillator();
+    const g = actx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    // gentle slow vibrato
+    const lfo = actx.createOscillator();
+    const lfoG = actx.createGain();
+    lfo.frequency.value = 0.12 + Math.random() * 0.08;
+    lfoG.gain.value = freq * 0.004;
+    lfo.connect(lfoG);
+    lfoG.connect(osc.frequency);
+    lfo.start();
+    g.gain.value = vol;
+    osc.connect(g);
+    g.connect(bgmGain);
+    osc.start();
+    bgmNodes.push(osc, g, lfo, lfoG);
+  });
+
+  // Pulse / beat — low thump every ~1.6s
+  function schedulePulse() {
+    if (!bgmRunning) return;
+    const osc = actx.createOscillator();
+    const env = actx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(80, actx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(30, actx.currentTime + 0.35);
+    env.gain.setValueAtTime(0.5, actx.currentTime);
+    env.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.35);
+    osc.connect(env); env.connect(bgmGain);
+    osc.start(); osc.stop(actx.currentTime + 0.36);
+    bgmNodes.push(osc, env);
+    const interval = 1.55 + Math.random() * 0.2;
+    setTimeout(schedulePulse, interval * 1000);
+  }
+  schedulePulse();
+
+  // Shimmer — occasional high ping
+  function scheduleShimmer() {
+    if (!bgmRunning) return;
+    const osc = actx.createOscillator();
+    const env = actx.createGain();
+    const panNode = actx.createStereoPanner();
+    panNode.pan.value = (Math.random() * 2 - 1) * 0.8;
+    const freqs = [880, 1100, 1320, 1760, 2200];
+    osc.type = 'sine';
+    osc.frequency.value = freqs[Math.floor(Math.random() * freqs.length)];
+    env.gain.setValueAtTime(0, actx.currentTime);
+    env.gain.linearRampToValueAtTime(0.06, actx.currentTime + 0.05);
+    env.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 1.2);
+    osc.connect(env); env.connect(panNode); panNode.connect(bgmGain);
+    osc.start(); osc.stop(actx.currentTime + 1.3);
+    bgmNodes.push(osc, env, panNode);
+    setTimeout(scheduleShimmer, 2000 + Math.random() * 3000);
+  }
+  scheduleShimmer();
+}
+
+function stopBGM() {
+  bgmRunning = false;
+  bgmNodes.forEach(n => { try { n.stop && n.stop(); n.disconnect && n.disconnect(); } catch(e){} });
+  bgmNodes = [];
+}
+
+// ─────────────────────────────────────────────
+//  SFX: GAME START  — rising synth fanfare
+// ─────────────────────────────────────────────
+function sfxGameStart() {
+  if (!actx) return;
+  const master = getMaster();
+  const t = actx.currentTime;
+
+  // Rising arp
+  const notes = [220, 330, 440, 660, 880];
+  notes.forEach((freq, i) => {
+    const osc = actx.createOscillator();
+    const env = actx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = freq;
+    const start = t + i * 0.08;
+    env.gain.setValueAtTime(0, start);
+    env.gain.linearRampToValueAtTime(0.15, start + 0.03);
+    env.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+    osc.connect(env); env.connect(master);
+    osc.start(start); osc.stop(start + 0.35);
+  });
+
+  // Final chord swell
+  [440, 550, 660].forEach((freq, i) => {
+    const osc = actx.createOscillator();
+    const env = actx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const start = t + 0.5;
+    env.gain.setValueAtTime(0, start);
+    env.gain.linearRampToValueAtTime(0.12, start + 0.15);
+    env.gain.exponentialRampToValueAtTime(0.001, start + 1.2);
+    osc.connect(env); env.connect(master);
+    osc.start(start); osc.stop(start + 1.3);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  SFX: PLATE SPAWN  — whoosh / saucer hum
+// ─────────────────────────────────────────────
+function sfxPlateSpawn() {
+  if (!actx) return;
+  const master = getMaster();
+  const t = actx.currentTime;
+  const g = actx.createGain();
+  g.gain.value = 0.35;
+  g.connect(master);
+
+  // Rising whoosh (noise filtered)
+  const buf = actx.createBuffer(1, actx.sampleRate * 0.3, actx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = actx.createBufferSource();
+  src.buffer = buf;
+  const filt = actx.createBiquadFilter();
+  filt.type = 'bandpass';
+  filt.frequency.setValueAtTime(400, t);
+  filt.frequency.exponentialRampToValueAtTime(3000, t + 0.25);
+  filt.Q.value = 3;
+  const env = actx.createGain();
+  env.gain.setValueAtTime(0.5, t);
+  env.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+  src.connect(filt); filt.connect(env); env.connect(g);
+  src.start(t);
+
+  // Saucer tone
+  const osc = actx.createOscillator();
+  const oEnv = actx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(600, t);
+  osc.frequency.exponentialRampToValueAtTime(200, t + 0.25);
+  oEnv.gain.setValueAtTime(0.08, t);
+  oEnv.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+  osc.connect(oEnv); oEnv.connect(g);
+  osc.start(t); osc.stop(t + 0.28);
+}
+
+// ─────────────────────────────────────────────
+//  SFX: NEAR MISS — doppler zip
+// ─────────────────────────────────────────────
+function sfxNearMiss() {
+  if (!actx) return;
+  const master = getMaster();
+  const t = actx.currentTime;
+  const osc = actx.createOscillator();
+  const env = actx.createGain();
+  const pan = actx.createStereoPanner();
+  pan.pan.value = (Math.random() > 0.5 ? 1 : -1) * 0.6;
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(1200, t);
+  osc.frequency.exponentialRampToValueAtTime(200, t + 0.2);
+  env.gain.setValueAtTime(0.2, t);
+  env.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+  osc.connect(env); env.connect(pan); pan.connect(master);
+  osc.start(t); osc.stop(t + 0.25);
+}
+
+// ─────────────────────────────────────────────
+//  SFX: COLLISION — impact + crumble
+// ─────────────────────────────────────────────
+function sfxCollision() {
+  if (!actx) return;
+  const master = getMaster();
+  const t = actx.currentTime;
+  const rev = makeReverb(1.5, 3);
+  rev.connect(master);
+
+  // IMPACT thud
+  const kick = actx.createOscillator();
+  const kickEnv = actx.createGain();
+  kick.type = 'sine';
+  kick.frequency.setValueAtTime(200, t);
+  kick.frequency.exponentialRampToValueAtTime(40, t + 0.3);
+  kickEnv.gain.setValueAtTime(1.0, t);
+  kickEnv.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+  kick.connect(kickEnv); kickEnv.connect(master);
+  kick.start(t); kick.stop(t + 0.5);
+
+  // Crash noise
+  const nBuf = actx.createBuffer(2, actx.sampleRate * 0.8, actx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = nBuf.getChannelData(c);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 1.5);
+  }
+  const nSrc = actx.createBufferSource();
+  nSrc.buffer = nBuf;
+  const nFilt = actx.createBiquadFilter();
+  nFilt.type = 'highpass'; nFilt.frequency.value = 800;
+  const nEnv = actx.createGain();
+  nEnv.gain.setValueAtTime(0.7, t);
+  nEnv.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+  nSrc.connect(nFilt); nFilt.connect(nEnv);
+  nEnv.connect(rev); nEnv.connect(master);
+  nSrc.start(t);
+
+  // Ceramic shatter tones
+  [1200, 1800, 2400, 900].forEach((freq, i) => {
+    const osc = actx.createOscillator();
+    const env = actx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq * (0.95 + Math.random() * 0.1);
+    const start = t + i * 0.025;
+    env.gain.setValueAtTime(0.3, start);
+    env.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
+    osc.connect(env); env.connect(rev);
+    osc.start(start); osc.stop(start + 0.45);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  SFX: GAME OVER — descending dramatic sting
+// ─────────────────────────────────────────────
+function sfxGameOver() {
+  if (!actx) return;
+  const master = getMaster();
+  const t = actx.currentTime + 0.3;
+  const rev = makeReverb(3, 2);
+  rev.connect(master);
+
+  // Descending notes
+  const notes = [440, 370, 330, 220, 165];
+  notes.forEach((freq, i) => {
+    const osc = actx.createOscillator();
+    const env = actx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.value = freq;
+    const filt = actx.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.value = 800;
+    const start = t + i * 0.18;
+    env.gain.setValueAtTime(0, start);
+    env.gain.linearRampToValueAtTime(0.3, start + 0.05);
+    env.gain.exponentialRampToValueAtTime(0.001, start + 0.6);
+    osc.connect(filt); filt.connect(env);
+    env.connect(rev); env.connect(master);
+    osc.start(start); osc.stop(start + 0.65);
+  });
+
+  // Deep final drone
+  const drone = actx.createOscillator();
+  const droneEnv = actx.createGain();
+  drone.type = 'sine';
+  drone.frequency.value = 55;
+  const dStart = t + 0.8;
+  droneEnv.gain.setValueAtTime(0, dStart);
+  droneEnv.gain.linearRampToValueAtTime(0.5, dStart + 0.3);
+  droneEnv.gain.exponentialRampToValueAtTime(0.001, dStart + 2.5);
+  drone.connect(droneEnv); droneEnv.connect(rev); droneEnv.connect(master);
+  drone.start(dStart); drone.stop(dStart + 3);
+}
+
+// ─────────────────────────────────────────────
+//  SFX: LEVEL UP — ascending chime
+// ─────────────────────────────────────────────
+function sfxLevelUp() {
+  if (!actx) return;
+  const master = getMaster();
+  const t = actx.currentTime;
+  [440, 550, 660, 880].forEach((freq, i) => {
+    const osc = actx.createOscillator();
+    const env = actx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    const start = t + i * 0.06;
+    env.gain.setValueAtTime(0, start);
+    env.gain.linearRampToValueAtTime(0.12, start + 0.03);
+    env.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
+    osc.connect(env); env.connect(master);
+    osc.start(start); osc.stop(start + 0.45);
+  });
+}
+
+// BGM volume control during danger
+function setBGMDanger(danger) {
+  // danger 0..1 — ramp BGM pitch feel via nothing fancy, just let it play
+  // Could modulate BGM gain slightly
+}
+
+</script>
+<script>
+// ════════════════════════════════════════════════
+//  RENDERER + SCENE
+// ════════════════════════════════════════════════
+const wrap = document.getElementById('canvas-wrap');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+wrap.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x060810);
+scene.fog = new THREE.FogExp2(0x060810, 0.055);
+
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 4, 11);
+camera.lookAt(0, 1.5, 0);
+
+// ── Lights ──
+scene.add(new THREE.AmbientLight(0x223355, 1.0));
+const dir = new THREE.DirectionalLight(0xffffff, 1.2);
+dir.position.set(4, 10, 6);
+dir.castShadow = true;
+scene.add(dir);
+const rim = new THREE.DirectionalLight(0x00ffcc, 0.4);
+rim.position.set(-6, 4, -4);
+scene.add(rim);
+const fill = new THREE.PointLight(0xff2244, 0.3, 30);
+fill.position.set(0, 8, -5);
+scene.add(fill);
+
+// ── Ground ──
+const groundGeo = new THREE.PlaneGeometry(30, 30);
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x0d1220, roughness: 0.9 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.01;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Grid lines
+const gridHelper = new THREE.GridHelper(30, 30, 0x1a2a3a, 0x0f1a28);
+scene.add(gridHelper);
+
+// ════════════════════════════════════════════════
+//  HUMAN MODEL
+// ════════════════════════════════════════════════
+function buildHuman() {
+  const root = new THREE.Group();
+
+  const skinMat  = () => new THREE.MeshStandardMaterial({ color: 0xc8a882, roughness: 0.5 });
+  const bodyMat  = () => new THREE.MeshStandardMaterial({ color: 0x2255aa, roughness: 0.4 });
+  const legMat   = () => new THREE.MeshStandardMaterial({ color: 0x223366, roughness: 0.5 });
+
+  function addMesh(geo, mat, parent, px=0, py=0, pz=0) {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(px, py, pz);
+    m.castShadow = true;
+    parent.add(m);
+    return m;
+  }
+
+  // Torso
+  addMesh(new THREE.CylinderGeometry(0.45, 0.38, 1.4, 14), bodyMat(), root, 0, 1.5, 0);
+  // Hips
+  addMesh(new THREE.CylinderGeometry(0.4, 0.35, 0.3, 12), legMat(), root, 0, 0.78, 0);
+  // Head
+  addMesh(new THREE.SphereGeometry(0.36, 20, 20), skinMat(), root, 0, 2.65, 0);
+  // Neck
+  addMesh(new THREE.CylinderGeometry(0.13, 0.15, 0.22, 10), skinMat(), root, 0, 2.23, 0);
+  // Eyes
+  const eyeMat = new THREE.MeshStandardMaterial({color:0x111122});
+  [-0.13,0.13].forEach(x => addMesh(new THREE.SphereGeometry(0.05,8,8), eyeMat, root, x, 2.7, 0.32));
+
+  // Arms
+  const armGeo = new THREE.CylinderGeometry(0.12, 0.1, 0.75, 10);
+  const foreGeo = new THREE.CylinderGeometry(0.09, 0.08, 0.65, 10);
+  const handGeo = new THREE.SphereGeometry(0.1, 8, 8);
+
+  function buildArm(side) {
+    const s = side === 'l' ? -1 : 1;
+    const g = new THREE.Group();
+    addMesh(armGeo, bodyMat(), g, 0, -0.37, 0);     // upper
+    addMesh(foreGeo, skinMat(), g, 0, -0.95, 0);    // fore
+    addMesh(handGeo, skinMat(), g, 0, -1.35, 0);    // hand
+    g.position.set(s * 0.6, 2.0, 0);
+    g.rotation.z = s * 0.18;
+    root.add(g);
+    return g;
+  }
+  const lArm = buildArm('l');
+  const rArm = buildArm('r');
+
+  // Legs
+  const thighGeo = new THREE.CylinderGeometry(0.18, 0.15, 0.85, 12);
+  const shinGeo  = new THREE.CylinderGeometry(0.12, 0.09, 0.78, 10);
+  const footGeo  = new THREE.BoxGeometry(0.16, 0.09, 0.3);
+
+  function buildLeg(side) {
+    const s = side === 'l' ? -1 : 1;
+    const g = new THREE.Group();
+    addMesh(thighGeo, legMat(), g, 0, -0.42, 0);
+    addMesh(shinGeo,  skinMat(), g, 0, -1.1, 0);
+    addMesh(footGeo,  legMat(), g, 0, -1.52, 0.07);
+    g.position.set(s * 0.22, 0.62, 0);
+    root.add(g);
+    return g;
+  }
+  const lLeg = buildLeg('l');
+  const rLeg = buildLeg('r');
+
+  root.position.set(0, 0, 0);
+  scene.add(root);
+
+  return { root, lArm, rArm, lLeg, rLeg };
+}
+
+const human = buildHuman();
+
+// ════════════════════════════════════════════════
+//  PLATE BUILDER
+// ════════════════════════════════════════════════
+function createPlate() {
+  const g = new THREE.Group();
+  const plateMat = new THREE.MeshStandardMaterial({ color: 0xddeeff, roughness: 0.2, metalness: 0.5 });
+  const glowMat  = new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive: 0x00ffcc, emissiveIntensity: 0.8, roughness: 0.3, transparent: true, opacity: 0.6 });
+
+  // main dish
+  const bot = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.45, 0.1, 20), plateMat);
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.2, 0.18, 20), plateMat);
+  const dome= new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 14), plateMat);
+  top.position.y = 0.14;
+  dome.position.y = 0.3;
+  g.add(bot, top, dome);
+
+  // glow ring
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.04, 8, 32), glowMat);
+  ring.rotation.x = Math.PI/2;
+  ring.position.y = -0.02;
+  g.add(ring);
+
+  // light under
+  const pl = new THREE.PointLight(0x00ffcc, 0.6, 4);
+  pl.position.y = -0.3;
+  g.add(pl);
+
+  scene.add(g);
+  return g;
+}
+
+// ════════════════════════════════════════════════
+//  GAME STATE
+// ════════════════════════════════════════════════
+let gameState = 'start'; // 'start' | 'playing' | 'paused' | 'dying' | 'over'
+let score = 0, elapsed = 0, dodged = 0, level = 1;
+let plates = [];
+let nextPlateTimer = 0;
+let baseInterval = 2.5;
+let baseSpeed = 5;
+let playerX = 0, playerZ = 0;
+const PLAYER_SPEED = 5;
+const BOUND = 4.5;
+const PLATE_SPAWN_RADIUS = 12;
+const PLATE_HIT_RADIUS = 0.7;
+
+const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+const keyEls = {
+  ArrowUp: document.getElementById('key-up'),
+  ArrowDown: document.getElementById('key-down'),
+  ArrowLeft: document.getElementById('key-left'),
+  ArrowRight: document.getElementById('key-right'),
+};
+
+window.addEventListener('keydown', e => {
+  if (keys.hasOwnProperty(e.key)) { keys[e.key] = true; if(keyEls[e.key]) keyEls[e.key].classList.add('active'); }
+  e.preventDefault && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key) && e.preventDefault();
+});
+window.addEventListener('keyup', e => {
+  if (keys.hasOwnProperty(e.key)) { keys[e.key] = false; if(keyEls[e.key]) keyEls[e.key].classList.remove('active'); }
+});
+
+// ── UI refs ──
+const hud = document.getElementById('hud');
+const startScreen = document.getElementById('start-screen');
+const gameoverScreen = document.getElementById('gameover-screen');
+const scoreDisp = document.getElementById('score-display');
+const timeDisp  = document.getElementById('time-display');
+const levelDisp = document.getElementById('level-display');
+const speedDisp = document.getElementById('speed-display');
+const hitFlash  = document.getElementById('hit-flash');
+const dangerWrap = document.getElementById('danger-bar-wrap');
+const dangerFill = document.getElementById('danger-fill');
+
+document.getElementById('start-btn').addEventListener('click', () => { ensureAudio(); startGame(); });
+document.getElementById('restart-btn').addEventListener('click', () => { ensureAudio(); startGame(); });
+
+function startGame() {
+  // Reset
+  plates.forEach(p => scene.remove(p.mesh));
+  plates = [];
+  score = 0; elapsed = 0; dodged = 0; level = 1;
+  nextPlateTimer = 1.0;
+  playerX = 0; playerZ = 0;
+  human.root.position.set(0, 0, 0);
+
+  startScreen.style.display = 'none';
+  gameoverScreen.style.display = 'none';
+  if (document.getElementById('pause-screen')) {
+    document.getElementById('pause-screen').classList.remove('active');
+  }
+  hud.style.display = '';
+  gameState = 'playing';
+
+  // ── SOUND ──
+  stopBGM();
+  sfxGameStart();
+  setTimeout(() => startBGM(), 800);
+}
+
+function showGameOver() {
+  gameState = 'over';
+  hud.style.display = 'none';
+  document.getElementById('final-score').textContent = Math.floor(score);
+  document.getElementById('final-time').textContent = Math.floor(elapsed) + 's';
+  document.getElementById('final-dodged').textContent = dodged;
+  document.getElementById('final-level').textContent = level;
+  gameoverScreen.style.display = 'flex';
+
+  // ── SOUND ──
+  stopBGM();
+  sfxGameOver();
+}
+
+function flashHit() {
+  hitFlash.style.opacity = '1';
+  setTimeout(() => { hitFlash.style.opacity = '0'; }, 80);
+}
+
+function spawnPlate() {
+  // 카메라 앞쪽에서 날아옴
+  const camDir = new THREE.Vector3();
+  camera.getWorldDirection(camDir);
+  camDir.y = 0;
+  camDir.normalize();
+
+  const right = new THREE.Vector3(-camDir.z, 0, camDir.x);
+
+  const spawnDist = 18 + Math.random() * 4;
+  const spreadH   = (Math.random() - 0.5) * 10;
+  const spreadV   = Math.random() * 4 + 1;
+
+  const sx = playerX + camDir.x * spawnDist + right.x * spreadH;
+  const sy = 1.5 + spreadV;
+  const sz = playerZ + camDir.z * spawnDist + right.z * spreadH;
+
+  const mesh = createPlate();
+  mesh.position.set(sx, sy, sz);
+  mesh.rotation.y = Math.random() * Math.PI * 2;
+
+  const tx = playerX + (Math.random() - 0.5) * 0.8;
+  const tz = playerZ + (Math.random() - 0.5) * 0.8;
+  const ty = 1.5;
+
+  const dir = new THREE.Vector3(tx - sx, ty - sy, tz - sz).normalize();
+
+  plates.push({ mesh, dir, alive: true, rotSpd: (Math.random() - 0.5) * 3 });
+}
+
+// ── Walk animation ──
+let walkT = 0;
+function animateHuman(dt, moving) {
+  if (moving) walkT += dt * 6;
+  const s = Math.sin(walkT);
+  human.lLeg.rotation.x = moving ? s * 0.4 : 0;
+  human.rLeg.rotation.x = moving ? -s * 0.4 : 0;
+  human.lArm.rotation.x = moving ? -s * 0.3 : 0;
+  human.rArm.rotation.x = moving ? s * 0.3 : 0;
+  // bob
+  human.root.position.y = moving ? Math.abs(Math.sin(walkT)) * 0.08 : 0;
+}
+
+// ════════════════════════════════════════════════
+//  MAIN LOOP
+// ════════════════════════════════════════════════
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+
+  // pause 중에도 카메라/렌더는 동작
+  if (gameState === 'paused') {
+    updateOrbitCamera();
+    renderer.render(scene, camera);
+    return;
+  }
+
+  if (gameState !== 'playing') {
+    renderer.render(scene, camera);
+    return;
+  }
+
+  elapsed += dt;
+  score += dt * 10 * level;
+
+  // Difficulty
+  const speedMult = 1 + elapsed * 0.035;
+  const intervalMult = Math.max(0.3, 1 - elapsed * 0.018);
+  const currentInterval = baseInterval * intervalMult;
+  const currentSpeed = baseSpeed * speedMult;
+
+  // Update HUD
+  scoreDisp.textContent = Math.floor(score);
+  timeDisp.textContent = Math.floor(elapsed) + 's';
+  levelDisp.textContent = level;
+  speedDisp.textContent = speedMult.toFixed(1) + '×';
+
+  // Danger bar (when plates are close)
+  const closestDist = plates.reduce((mn, p) => {
+    if (!p.alive) return mn;
+    const d = p.mesh.position.distanceTo(human.root.position);
+    return Math.min(mn, d);
+  }, 99);
+  if (closestDist < 6 && plates.length > 0) {
+    dangerWrap.style.display = '';
+    dangerFill.style.width = Math.min(100, (1 - closestDist/6) * 100) + '%';
+  } else {
+    dangerWrap.style.display = 'none';
+  }
+
+  // Player movement
+  let moved = false;
+  if (keys.ArrowLeft)  { playerX -= PLAYER_SPEED * dt; moved = true; }
+  if (keys.ArrowRight) { playerX += PLAYER_SPEED * dt; moved = true; }
+  if (keys.ArrowUp)    { playerZ -= PLAYER_SPEED * dt; moved = true; }
+  if (keys.ArrowDown)  { playerZ += PLAYER_SPEED * dt; moved = true; }
+
+  playerX = Math.max(-BOUND, Math.min(BOUND, playerX));
+  playerZ = Math.max(-BOUND, Math.min(BOUND, playerZ));
+
+  human.root.position.x = playerX;
+  human.root.position.z = playerZ;
+
+  // Face movement direction
+  if (moved) {
+    const dx = (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0);
+    const dz = (keys.ArrowDown ? 1 : 0) - (keys.ArrowUp ? 1 : 0);
+    if (dx !== 0 || dz !== 0) {
+      human.root.rotation.y = Math.atan2(dx, dz);
+    }
+  }
+
+  animateHuman(dt, moved);
+
+  // Spawn plates
+  nextPlateTimer -= dt;
+  if (nextPlateTimer <= 0) {
+    spawnPlate();
+    sfxPlateSpawn();
+    dodged++; // count spawned (we'll subtract on hit, actually just track dodged separately)
+    nextPlateTimer = currentInterval * (0.7 + Math.random() * 0.6);
+  }
+
+  // Level up sound
+  const newLevel = Math.floor(elapsed / 15) + 1;
+  if (newLevel > level) {
+    level = newLevel;
+    sfxLevelUp();
+  }
+
+  // Move plates
+  const humanPos = human.root.position;
+  for (let i = plates.length - 1; i >= 0; i--) {
+    const p = plates[i];
+    if (!p.alive) continue;
+
+    p.mesh.position.addScaledVector(p.dir, currentSpeed * dt);
+    p.mesh.rotation.y += p.rotSpd * dt * 2;
+
+    // Remove if fell below ground or drifted too far
+    if (p.mesh.position.y < -2 || p.mesh.position.length() > 25) {
+      scene.remove(p.mesh);
+      plates.splice(i, 1);
+      continue;
+    }
+
+    // Collision check
+    const dist = p.mesh.position.distanceTo(new THREE.Vector3(humanPos.x, p.mesh.position.y, humanPos.z));
+    const vertDist = Math.abs(p.mesh.position.y - 1.5);
+    if (dist < PLATE_HIT_RADIUS && vertDist < 1.2) {
+      flashHit();
+      sfxCollision();   // ← COLLISION SOUND
+      p.alive = false;
+      scene.remove(p.mesh);
+      plates.splice(i, 1);
+
+      // Animate briefly then game over
+      setTimeout(showGameOver, 300);
+      gameState = 'dying';
+      return;
+    }
+
+    // Near-miss sound (plate just flew past very close)
+    if (!p._missedSound && dist < 1.4 && vertDist < 1.5 && p.mesh.position.distanceTo(new THREE.Vector3(humanPos.x, p.mesh.position.y, humanPos.z)) > PLATE_HIT_RADIUS) {
+      // Check if plate is moving away (dot product of dir with vector from plate to player < 0)
+      const toPlayer = new THREE.Vector3(humanPos.x - p.mesh.position.x, 0, humanPos.z - p.mesh.position.z).normalize();
+      if (p.dir.dot(toPlayer) < -0.3) {
+        p._missedSound = true;
+        sfxNearMiss();
+      }
+    }
+  }
+
+  // Camera update handled by orbit system
+  updateOrbitCamera();
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// ════════════════════════════════════════════════
+//  ORBIT CAMERA — 마우스 우클릭 드래그 + 스크롤 줌
+// ════════════════════════════════════════════════
+let camTheta  = 0;
+let camPhi    = 0.55;
+let camRadius = 11;
+const CAM_TARGET_Y = 1.8;
+
+let orbitDragging = false;
+let orbitPrev = { x: 0, y: 0 };
+
+function updateOrbitCamera() {
+  const tx = playerX, tz = playerZ;
+  camera.position.x = tx + camRadius * Math.sin(camPhi) * Math.sin(camTheta);
+  camera.position.y =      camRadius * Math.cos(camPhi) + CAM_TARGET_Y;
+  camera.position.z = tz + camRadius * Math.sin(camPhi) * Math.cos(camTheta);
+  camera.lookAt(tx, CAM_TARGET_Y, tz);
+}
+
+// 우클릭(button=2) 드래그로 뷰 회전
+renderer.domElement.addEventListener('mousedown', (e) => {
+  if (e.button === 2 || e.button === 1) {
+    orbitDragging = true;
+    orbitPrev = { x: e.clientX, y: e.clientY };
+    e.preventDefault();
+  }
+});
+window.addEventListener('mousemove', (e) => {
+  if (!orbitDragging) return;
+  const dx = e.clientX - orbitPrev.x;
+  const dy = e.clientY - orbitPrev.y;
+  camTheta -= dx * 0.007;
+  camPhi   -= dy * 0.007;
+  camPhi = Math.max(0.08, Math.min(Math.PI * 0.85, camPhi));
+  orbitPrev = { x: e.clientX, y: e.clientY };
+});
+window.addEventListener('mouseup', (e) => {
+  if (e.button === 2 || e.button === 1) orbitDragging = false;
+});
+
+// 스크롤 줌
+renderer.domElement.addEventListener('wheel', (e) => {
+  camRadius += e.deltaY * 0.015;
+  camRadius = Math.max(3, Math.min(24, camRadius));
+  e.preventDefault();
+}, { passive: false });
+
+// 우클릭 컨텍스트 메뉴 막기
+renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+
+// 모바일 터치: 1손가락 드래그 → 회전, 2손가락 핀치 → 줌
+let touchPrev = null, touchDist0 = null;
+renderer.domElement.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) touchPrev = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  else if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    touchDist0 = Math.sqrt(dx*dx + dy*dy);
+  }
+}, { passive: true });
+renderer.domElement.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 1 && touchPrev) {
+    const dx = e.touches[0].clientX - touchPrev.x;
+    const dy = e.touches[0].clientY - touchPrev.y;
+    camTheta -= dx * 0.007;
+    camPhi   -= dy * 0.007;
+    camPhi = Math.max(0.08, Math.min(Math.PI * 0.85, camPhi));
+    touchPrev = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  } else if (e.touches.length === 2 && touchDist0) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    camRadius -= (dist - touchDist0) * 0.04;
+    camRadius = Math.max(3, Math.min(24, camRadius));
+    touchDist0 = dist;
+  }
+}, { passive: true });
+renderer.domElement.addEventListener('touchend', () => { touchPrev = null; touchDist0 = null; }, { passive: true });
+
+// ── Pause / Resume ──
+const pauseScreen = document.getElementById('pause-screen');
+const pauseBtn    = document.getElementById('pause-btn');
+const resumeBtn   = document.getElementById('resume-btn');
+
+function pauseGame() {
+  if (gameState !== 'playing') return;
+  gameState = 'paused';
+  pauseScreen.classList.add('active');
+  pauseBtn.textContent = '▶';
+  pauseBtn.classList.add('paused');
+  pauseBtn.title = '재개 (P)';
+  // 일시정지 스탯 업데이트
+  document.getElementById('pause-score').textContent = Math.floor(score);
+  document.getElementById('pause-time').textContent  = Math.floor(elapsed) + 's';
+  document.getElementById('pause-level').textContent = level;
+  // BGM 페이드
+  if (actx && getMaster()) getMaster().gain.linearRampToValueAtTime(muted ? 0 : 0.06, actx.currentTime + 0.3);
+}
+
+function resumeGame() {
+  if (gameState !== 'paused') return;
+  gameState = 'playing';
+  pauseScreen.classList.remove('active');
+  pauseBtn.textContent = '⏸';
+  pauseBtn.classList.remove('paused');
+  pauseBtn.title = '일시정지 (P)';
+  // BGM 복구
+  if (actx && getMaster()) getMaster().gain.linearRampToValueAtTime(muted ? 0 : 0.7, actx.currentTime + 0.3);
+  clock.getDelta(); // delta 리셋 (긴 pause 후 dt 폭발 방지)
+}
+
+function togglePause() {
+  if (gameState === 'playing') pauseGame();
+  else if (gameState === 'paused') resumeGame();
+}
+
+pauseBtn.addEventListener('click', togglePause);
+resumeBtn.addEventListener('click', resumeGame);
+
+// P 키 단축키
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+    if (gameState === 'playing' || gameState === 'paused') togglePause();
+  }
+});
+
+// ── Mute toggle ──
+let muted = false;
+document.getElementById('mute-btn').addEventListener('click', () => {
+  muted = !muted;
+  if (actx) {
+    getMaster().gain.value = muted ? 0 : 0.7;
+  }
+  document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
+});
+
+// ── Resize ──
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
