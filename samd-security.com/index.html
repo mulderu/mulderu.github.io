@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>터빈소프트 | SaMD 사이버보안 전문</title>
+
+
+<!-- ========== Primary SEO ========== -->
+<meta name="description" content="터빈소프트는 SaMD(소프트웨어 의료기기) 사이버보안 전문 컨설팅 기업입니다. MFDS 인허가 문서화, 위협 분석(TARA), 침투 테스트, SBOM 관리, FDA·CE 해외 인허가까지 의료기기 보안의 전 주기를 지원합니다.">
+<meta name="keywords" content="SaMD 사이버보안, 의료기기 사이버보안, MFDS 인허가, 소프트웨어 의료기기, 의료기기 보안 컨설팅, IEC 62443, ISO 14971, TARA 위협분석, SBOM, 식약처 인허가, FDA 의료기기, 의료기기 침투테스트, 터빈소프트, samd-securify">
+<meta name="author" content="터빈소프트 (TurbineSoft)">
+<meta name="robots" content="index, follow">
+<meta name="googlebot" content="index, follow">
+<link rel="canonical" href="https://samd-securify.com/">
+
+<!-- ========== Open Graph (Facebook · KakaoTalk · LinkedIn) ========== -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="터빈소프트">
+<meta property="og:title" content="터빈소프트 | SaMD 의료기기 사이버보안 전문 컨설팅">
+<meta property="og:description" content="SaMD 인허가에서 사후 관리까지 — MFDS·FDA·CE 의료기기 사이버보안 컨설팅 전문 기업. 150건 이상 인허가 지원, 98% 심사 통과율.">
+<meta property="og:url" content="https://samd-securify.com/">
+<meta property="og:image" content="https://samd-securify.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="터빈소프트 SaMD 사이버보안 컨설팅">
+<meta property="og:locale" content="ko_KR">
+
+<!-- ========== Twitter Card ========== -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@turbinesoft">
+<meta name="twitter:title" content="터빈소프트 | SaMD 의료기기 사이버보안 전문 컨설팅">
+<meta name="twitter:description" content="SaMD 인허가에서 사후 관리까지 — MFDS·FDA·CE 의료기기 사이버보안 컨설팅 전문 기업.">
+<meta name="twitter:image" content="https://samd-securify.com/og-image.png">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #04080f;
+    --surface: #080e1a;
+    --panel: #0d1525;
+    --border: #1a2d4a;
+    --accent: #00e5ff;
+    --accent2: #0066ff;
+    --accent3: #ff3c5a;
+    --text: #c8d8f0;
+    --muted: #4a6080;
+    --white: #eaf2ff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  #cursor {
+    position: fixed;
+    width: 10px; height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: screen;
+    transition: transform 0.1s;
+  }
+  #cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.4;
+    transition: transform 0.3s ease, width 0.2s, height 0.2s;
+  }
+
+  /* SCANLINES OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,229,255,0.015) 2px,
+      rgba(0,229,255,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* NOISE TEXTURE */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 60px;
+    border-bottom: 1px solid transparent;
+    transition: all 0.4s;
+  }
+  nav.scrolled {
+    background: rgba(4,8,15,0.92);
+    border-color: var(--border);
+    backdrop-filter: blur(12px);
+  }
+  .nav-logo {
+    display: flex;
+    flex-direction: column;
+  }
+  .nav-logo-main {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 4px;
+    color: var(--white);
+  }
+  .nav-logo-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-top: -2px;
+  }
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+  }
+  .nav-links a {
+    text-decoration: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    transition: color 0.2s;
+    text-transform: uppercase;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-cta {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 10px 24px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .nav-cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform: translateX(-100%);
+    transition: transform 0.2s;
+  }
+  .nav-cta:hover::before { transform: translateX(0); }
+  .nav-cta:hover { color: var(--bg); }
+  .nav-cta span { position: relative; z-index: 1; }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.3;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,102,255,0.12) 0%, transparent 70%);
+    top: 50%; left: 55%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .hero-left {
+    position: relative;
+    z-index: 10;
+    padding-top: 80px;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    padding: 8px 16px;
+    border: 1px solid rgba(0,229,255,0.3);
+    background: rgba(0,229,255,0.05);
+  }
+  .hero-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(64px, 7vw, 100px);
+    line-height: 0.95;
+    color: var(--white);
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
+  .hero-title .accent { color: var(--accent); }
+  .hero-title .stroke {
+    -webkit-text-stroke: 1px var(--white);
+    color: transparent;
+  }
+
+  .hero-desc {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--muted);
+    max-width: 480px;
+    margin-bottom: 48px;
+    border-left: 2px solid var(--border);
+    padding-left: 20px;
+  }
+  .hero-desc strong { color: var(--text); font-weight: 500; }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    background: var(--accent2);
+    color: var(--white);
+    text-decoration: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  }
+  .btn-primary:hover { background: var(--accent); color: var(--bg); }
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .btn-secondary:hover { color: var(--text); }
+  .btn-secondary::after {
+    content: '→';
+    transition: transform 0.2s;
+  }
+  .btn-secondary:hover::after { transform: translateX(4px); }
+
+  /* HERO RIGHT - CYBER DIAGRAM */
+  .hero-right {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cyber-diagram {
+    position: relative;
+    width: 440px;
+    height: 440px;
+  }
+  .cyber-diagram svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: rotateSlow 30s linear infinite;
+  }
+  .cyber-diagram svg.reverse {
+    animation-direction: reverse;
+    animation-duration: 20s;
+  }
+  @keyframes rotateSlow {
+    to { transform: rotate(360deg); }
+  }
+
+  .diagram-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 10;
+  }
+  .diagram-center-icon {
+    width: 80px; height: 80px;
+    border: 1px solid var(--accent);
+    background: var(--panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.3); }
+    50% { box-shadow: 0 0 20px 8px rgba(0,229,255,0.1); }
+  }
+  .diagram-center-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .floating-node {
+    position: absolute;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: border-color 0.3s;
+  }
+  .floating-node:hover { border-color: var(--accent); color: var(--accent); }
+  .node-1 { top: 5%; left: 50%; transform: translateX(-50%); }
+  .node-2 { top: 22%; right: 0%; }
+  .node-3 { bottom: 22%; right: 0%; }
+  .node-4 { bottom: 5%; left: 50%; transform: translateX(-50%); }
+  .node-5 { bottom: 22%; left: 0%; }
+  .node-6 { top: 22%; left: 0%; }
+
+  /* STATS BAR */
+  .stats-bar {
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 32px 60px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .stat-item {
+    text-align: center;
+    border-right: 1px solid var(--border);
+    padding: 8px 0;
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-unit {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    color: var(--accent2);
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+
+  /* SECTION BASE */
+  section {
+    padding: 120px 60px;
+    position: relative;
+  }
+
+  .section-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 5vw, 72px);
+    color: var(--white);
+    letter-spacing: 2px;
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+  .section-desc {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--muted);
+    max-width: 560px;
+  }
+
+  /* SERVICES */
+  #services {
+    background: var(--surface);
+  }
+  .services-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 80px;
+    align-items: end;
+  }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+  .service-card {
+    background: var(--panel);
+    padding: 40px 32px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: none;
+  }
+  .service-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .service-card:hover { background: #0f1e35; border-color: rgba(0,102,255,0.4); }
+  .service-card:hover::before { transform: scaleX(1); }
+  .service-card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent), var(--accent3)); }
+  .service-card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent3), var(--accent2)); }
+  .service-card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent2), var(--accent3)); }
+  .service-card:nth-child(5)::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .service-card:nth-child(6)::before { background: linear-gradient(90deg, var(--accent3), var(--accent)); }
+
+  .service-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    color: var(--border);
+    line-height: 1;
+    margin-bottom: 20px;
+    transition: color 0.3s;
+  }
+  .service-card:hover .service-num { color: rgba(0,102,255,0.3); }
+
+  .service-icon {
+    width: 44px; height: 44px;
+    margin-bottom: 20px;
+    color: var(--accent);
+  }
+  .service-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: var(--white);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .service-desc {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  .service-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 20px;
+  }
+  .service-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* COMPLIANCE */
+  #compliance {
+    overflow: hidden;
+  }
+  .compliance-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    margin-top: 80px;
+  }
+  .compliance-timeline {
+    position: relative;
+  }
+  .timeline-line {
+    position: absolute;
+    left: 16px;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+  }
+  .timeline-item {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 48px;
+    position: relative;
+  }
+  .timeline-dot {
+    width: 32px; height: 32px;
+    border: 1px solid var(--accent);
+    background: var(--panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .timeline-dot-inner {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    animation: blink 2s infinite;
+  }
+  .timeline-content {}
+  .timeline-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .timeline-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--white);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .timeline-desc {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .compliance-standards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .standard-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .standard-card:hover { border-color: rgba(0,229,255,0.4); }
+  .standard-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle at bottom right, rgba(0,229,255,0.06), transparent);
+  }
+  .standard-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .standard-full {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* THREAT */
+  #threat {
+    background: var(--surface);
+  }
+  .threat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin-top: 60px;
+  }
+  .threat-item {
+    background: var(--panel);
+    padding: 32px 24px;
+    border: 1px solid var(--border);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .threat-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,60,90,0.03), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .threat-item:hover::before { opacity: 1; }
+  .threat-icon { font-size: 32px; margin-bottom: 12px; }
+  .threat-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: var(--white);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .threat-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .threat-level {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    margin-top: 12px;
+    background: rgba(255,60,90,0.1);
+    border: 1px solid rgba(255,60,90,0.3);
+    color: var(--accent3);
+    text-transform: uppercase;
+  }
+
+  /* PROCESS */
+  #process {}
+  .process-steps {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    margin-top: 80px;
+    position: relative;
+  }
+  .process-steps::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent2), var(--accent), var(--accent2), transparent);
+    z-index: 0;
+  }
+  .process-step {
+    text-align: center;
+    padding: 0 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .step-circle {
+    width: 56px; height: 56px;
+    border: 1px solid var(--accent2);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--accent);
+    position: relative;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+  .step-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    color: var(--white);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .step-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ABOUT */
+  #about {
+    background: var(--surface);
+  }
+  .about-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 100px;
+    align-items: center;
+  }
+  .about-visual {
+    position: relative;
+  }
+  .about-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 48px;
+    position: relative;
+  }
+  .about-box::before {
+    content: '';
+    position: absolute;
+    top: -8px; right: -8px;
+    width: 100%; height: 100%;
+    border: 1px solid var(--border);
+    z-index: -1;
+  }
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .terminal-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .dot-red { background: var(--accent3); }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #28c840; }
+  .terminal-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-left: 8px;
+    letter-spacing: 1px;
+  }
+  .terminal-content {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    line-height: 2;
+    color: var(--text);
+  }
+  .t-green { color: #28c840; }
+  .t-blue { color: var(--accent); }
+  .t-yellow { color: #ffbd2e; }
+  .t-red { color: var(--accent3); }
+  .t-muted { color: var(--muted); }
+  .cursor-blink {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--accent);
+    animation: blink 1s infinite;
+    vertical-align: middle;
+  }
+
+  .about-content .section-desc { max-width: 100%; margin-bottom: 32px; }
+  .about-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .about-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .about-list li::before {
+    content: '▸';
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* CONTACT */
+  #contact {
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+  }
+  .contact-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .contact-info {}
+  .contact-items {
+    margin-top: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .contact-item-icon {
+    width: 40px; height: 40px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--accent);
+    font-size: 16px;
+  }
+  .contact-item-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .contact-item-value {
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .contact-form {}
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-label {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .form-input, .form-textarea, .form-select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus {
+    border-color: var(--accent);
+  }
+  .form-textarea { height: 120px; resize: vertical; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent2);
+    border: none;
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: none;
+    transition: background 0.2s;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  }
+  .btn-submit:hover { background: var(--accent); color: var(--bg); }
+
+  /* FOOTER */
+  footer {
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 40px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: var(--muted);
+  }
+  .footer-copy {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .footer-domain {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  /* FADE IN ANIMATION */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .fade-up:nth-child(2) { transition-delay: 0.1s; }
+  .fade-up:nth-child(3) { transition-delay: 0.2s; }
+  .fade-up:nth-child(4) { transition-delay: 0.3s; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent2); }
+
+  @media (max-width: 1024px) {
+    nav { padding: 20px 32px; }
+    #hero, section { padding-left: 32px; padding-right: 32px; }
+    #hero { grid-template-columns: 1fr; }
+    .hero-right { display: none; }
+    .services-header { grid-template-columns: 1fr; }
+    .services-grid { grid-template-columns: 1fr 1fr; }
+    .compliance-layout, .about-layout, .contact-layout { grid-template-columns: 1fr; }
+    .compliance-standards { grid-template-columns: repeat(2, 1fr); }
+    .threat-grid { grid-template-columns: 1fr 1fr; }
+    .process-steps { grid-template-columns: 1fr 1fr; gap: 32px; }
+    .process-steps::before { display: none; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo">
+    <span class="nav-logo-main">TURBINESOFT</span>
+    <span class="nav-logo-sub">samd-securify.com</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#services">서비스</a></li>
+    <li><a href="#compliance">규제 준수</a></li>
+    <li><a href="#process">프로세스</a></li>
+    <li><a href="#about">회사 소개</a></li>
+    <li><a href="#contact">문의</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta"><span>무료 상담</span></a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-left">
+    <div class="hero-tag">SaMD Cybersecurity Experts</div>
+    <h1 class="hero-title">
+      의료기기<br>
+      <span class="accent">사이버보안</span><br>
+      <span class="stroke">전문가</span>
+    </h1>
+    <p class="hero-desc">
+      터빈소프트는 <strong>SaMD(소프트웨어 의료기기)</strong>에 특화된 사이버보안 컨설팅 기업입니다.<br>
+      MFDS 인허가부터 IEC 62443, ISO 14971까지 — 규제 승인을 위한 완전한 사이버보안 솔루션을 제공합니다.
+    </p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        보안 진단 시작
+      </a>
+      <a href="#services" class="btn-secondary">서비스 보기</a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="cyber-diagram">
+      <!-- Outer ring -->
+      <svg viewBox="0 0 440 440">
+        <circle cx="220" cy="220" r="200" fill="none" stroke="rgba(0,102,255,0.15)" stroke-width="1" stroke-dasharray="8 4"/>
+        <circle cx="220" cy="220" r="160" fill="none" stroke="rgba(0,229,255,0.08)" stroke-width="1"/>
+        <line x1="220" y1="20" x2="220" y2="140" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+        <line x1="380" y1="110" x2="290" y2="170" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+        <line x1="380" y1="330" x2="290" y2="270" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+        <line x1="220" y1="420" x2="220" y2="300" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+        <line x1="60" y1="330" x2="150" y2="270" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+        <line x1="60" y1="110" x2="150" y2="170" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+        <!-- node dots -->
+        <circle cx="220" cy="20" r="4" fill="rgba(0,229,255,0.6)"/>
+        <circle cx="380" cy="110" r="4" fill="rgba(0,102,255,0.6)"/>
+        <circle cx="380" cy="330" r="4" fill="rgba(0,229,255,0.6)"/>
+        <circle cx="220" cy="420" r="4" fill="rgba(0,102,255,0.6)"/>
+        <circle cx="60" cy="330" r="4" fill="rgba(0,229,255,0.6)"/>
+        <circle cx="60" cy="110" r="4" fill="rgba(0,102,255,0.6)"/>
+      </svg>
+      <svg viewBox="0 0 440 440" class="reverse" style="animation-duration:15s">
+        <polygon points="220,80 320,150 320,290 220,360 120,290 120,150" fill="none" stroke="rgba(0,229,255,0.2)" stroke-width="1"/>
+      </svg>
+
+      <div class="diagram-center">
+        <div class="diagram-center-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <div class="diagram-center-label">SecureCore</div>
+      </div>
+
+      <div class="floating-node node-1">THREAT ANALYSIS</div>
+      <div class="floating-node node-2">RISK MGMT</div>
+      <div class="floating-node node-3">PENETRATION</div>
+      <div class="floating-node node-4">MFDS DOCS</div>
+      <div class="floating-node node-5">IEC 62443</div>
+      <div class="floating-node node-6">SBOM</div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div><span class="stat-num">150</span><span class="stat-unit">+</span></div>
+    <div class="stat-label">SaMD 인허가 지원 건수</div>
+  </div>
+  <div class="stat-item">
+    <div><span class="stat-num">98</span><span class="stat-unit">%</span></div>
+    <div class="stat-label">MFDS 심사 통과율</div>
+  </div>
+  <div class="stat-item">
+    <div><span class="stat-num">12</span><span class="stat-unit">년</span></div>
+    <div class="stat-label">의료기기 보안 전문 경력</div>
+  </div>
+  <div class="stat-item">
+    <div><span class="stat-num">24</span><span class="stat-unit">/7</span></div>
+    <div class="stat-label">보안 모니터링 지원</div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="services-header">
+    <div>
+      <div class="section-tag">// 핵심 서비스</div>
+      <h2 class="section-title">SaMD 사이버보안<br>전 주기 지원</h2>
+    </div>
+    <p class="section-desc">
+      의료기기 소프트웨어 인허가에서 사후 관리까지, 사이버보안의 모든 단계를 전문적으로 지원합니다. MFDS 가이드라인과 국제 표준에 완전히 부합하는 문서화 및 기술 지원을 제공합니다.
+    </p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card fade-up">
+      <div class="service-num">01</div>
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+      <div class="service-title">MFDS 인허가<br>사이버보안 문서</div>
+      <p class="service-desc">식품의약품안전처(MFDS) 가이드라인 기반의 사이버보안 계획서, 위협 분석 보고서, 보안 테스트 결과서 등 인허가 필수 문서 일체를 작성합니다.</p>
+      <div class="service-tags">
+        <span class="service-tag">사이버보안 계획서</span>
+        <span class="service-tag">위협모델링</span>
+        <span class="service-tag">보안시험</span>
+      </div>
+    </div>
+    <div class="service-card fade-up">
+      <div class="service-num">02</div>
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/><path d="M4.93 4.93l14.14 14.14" opacity="0.3"/></svg>
+      <div class="service-title">위협 분석 및<br>리스크 평가</div>
+      <p class="service-desc">STRIDE, DREAD 방법론을 적용한 체계적인 위협 분석과 ISO 14971 기반 리스크 관리를 수행합니다. 의료기기 특성에 맞는 사이버보안 위험도를 정량적으로 평가합니다.</p>
+      <div class="service-tags">
+        <span class="service-tag">TARA</span>
+        <span class="service-tag">STRIDE</span>
+        <span class="service-tag">ISO 14971</span>
+      </div>
+    </div>
+    <div class="service-card fade-up">
+      <div class="service-num">03</div>
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <div class="service-title">침투 테스트 및<br>취약점 분석</div>
+      <p class="service-desc">의료기기 소프트웨어에 특화된 침투 테스트를 수행합니다. 네트워크 인터페이스, API, 임베디드 시스템, 데이터 암호화 등 전방위 보안 취약점을 진단합니다.</p>
+      <div class="service-tags">
+        <span class="service-tag">펜테스트</span>
+        <span class="service-tag">FUZZ Testing</span>
+        <span class="service-tag">CVE 분석</span>
+      </div>
+    </div>
+    <div class="service-card fade-up">
+      <div class="service-num">04</div>
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <div class="service-title">SBOM 관리 및<br>공급망 보안</div>
+      <p class="service-desc">Software Bill of Materials(SBOM)을 생성·관리하고 오픈소스 컴포넌트의 취약점을 지속적으로 모니터링합니다. 의료기기 공급망 전반의 보안을 보장합니다.</p>
+      <div class="service-tags">
+        <span class="service-tag">SBOM</span>
+        <span class="service-tag">OSS 관리</span>
+        <span class="service-tag">공급망 보안</span>
+      </div>
+    </div>
+    <div class="service-card fade-up">
+      <div class="service-num">05</div>
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <div class="service-title">사후 시장<br>보안 모니터링</div>
+      <p class="service-desc">제품 출시 이후에도 지속적인 취약점 모니터링과 패치 관리를 제공합니다. 신규 CVE 발생 시 영향도 분석 및 대응 방안을 신속하게 제시합니다.</p>
+      <div class="service-tags">
+        <span class="service-tag">PMS</span>
+        <span class="service-tag">패치 관리</span>
+        <span class="service-tag">인시던트 대응</span>
+      </div>
+    </div>
+    <div class="service-card fade-up">
+      <div class="service-num">06</div>
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <div class="service-title">보안 교육 및<br>역량 강화</div>
+      <p class="service-desc">의료기기 개발팀을 위한 사이버보안 인식 교육과 SDL(Security Development Lifecycle) 프로세스 구축을 지원합니다. MFDS 심사관 대응 교육도 제공합니다.</p>
+      <div class="service-tags">
+        <span class="service-tag">보안 교육</span>
+        <span class="service-tag">SDL 구축</span>
+        <span class="service-tag">내부 감사</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPLIANCE -->
+<section id="compliance">
+  <div class="section-tag">// 규제 및 국제 표준</div>
+  <h2 class="section-title">완전한 규제 준수<br><span style="color:var(--accent)">지원 체계</span></h2>
+  <div class="compliance-layout">
+    <div class="compliance-timeline">
+      <div class="timeline-line"></div>
+      <div class="timeline-item">
+        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+        <div class="timeline-content">
+          <div class="timeline-label">국내 규제</div>
+          <div class="timeline-title">MFDS 의료기기 사이버보안 가이드라인</div>
+          <div class="timeline-desc">식약처 가이드라인에 따른 사이버보안 계획서, 아키텍처 다이어그램, 위협모델 문서화, 보안시험 계획 및 결과서 작성을 완전 지원합니다.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+        <div class="timeline-content">
+          <div class="timeline-label">국제 표준</div>
+          <div class="timeline-title">IEC 62443 / ISO 14971 통합 대응</div>
+          <div class="timeline-desc">산업용 자동화 제어시스템 보안 국제표준 IEC 62443과 의료기기 리스크 관리 표준 ISO 14971을 통합하여 글로벌 시장 진출을 지원합니다.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+        <div class="timeline-content">
+          <div class="timeline-label">미국 FDA</div>
+          <div class="timeline-title">FDA 사이버보안 요구사항 준수</div>
+          <div class="timeline-desc">FDA Cybersecurity Guidance (2023) 기반의 문서화와 기술적 요구사항을 충족하여 미국 시장 진출을 위한 510(k), PMA 신청을 지원합니다.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+        <div class="timeline-content">
+          <div class="timeline-label">유럽 MDR</div>
+          <div class="timeline-title">EU MDR / MDD 사이버보안 요건</div>
+          <div class="timeline-desc">유럽 의료기기 규정(EU MDR 2017/745)의 사이버보안 필수 요건을 충족하는 기술 문서화와 CE 인증 프로세스를 지원합니다.</div>
+        </div>
+      </div>
+    </div>
+    <div class="compliance-standards">
+      <div class="standard-card">
+        <div class="standard-name">IEC 62443</div>
+        <div class="standard-full">산업 자동화 및 제어 시스템 보안 국제표준</div>
+      </div>
+      <div class="standard-card">
+        <div class="standard-name">ISO 14971</div>
+        <div class="standard-full">의료기기 리스크 관리 국제표준</div>
+      </div>
+      <div class="standard-card">
+        <div class="standard-name">ISO 27001</div>
+        <div class="standard-full">정보보안 관리시스템 국제표준</div>
+      </div>
+      <div class="standard-card">
+        <div class="standard-name">AAMI TIR57</div>
+        <div class="standard-full">의료기기 사이버보안 위험관리 기술 보고서</div>
+      </div>
+      <div class="standard-card">
+        <div class="standard-name">NIST CSF</div>
+        <div class="standard-full">사이버보안 프레임워크 (미국 NIST)</div>
+      </div>
+      <div class="standard-card">
+        <div class="standard-name">FDA 가이던스</div>
+        <div class="standard-full">2023 Cybersecurity in Medical Devices</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THREAT -->
+<section id="threat">
+  <div class="section-tag">// 위협 환경</div>
+  <h2 class="section-title">의료기기를 노리는<br><span style="color:var(--accent3)">사이버 위협</span></h2>
+  <p class="section-desc" style="margin-top:16px">의료기기는 환자 안전과 직결되어 랜섬웨어, 데이터 탈취, 기기 조작 등 심각한 사이버 공격의 표적이 되고 있습니다.</p>
+  <div class="threat-grid">
+    <div class="threat-item">
+      <div class="threat-icon">🦠</div>
+      <div class="threat-title">랜섬웨어 공격</div>
+      <p class="threat-desc">의료기기 시스템을 암호화하여 운영을 마비시키고 환자 안전을 위협하는 악성 소프트웨어 공격</p>
+      <span class="threat-level">위험도: 치명적</span>
+    </div>
+    <div class="threat-item">
+      <div class="threat-icon">🕵️</div>
+      <div class="threat-title">환자 데이터 탈취</div>
+      <p class="threat-desc">PHI(보호 건강 정보) 및 민감 의료 데이터를 무단으로 수집·유출하는 지능형 공격</p>
+      <span class="threat-level">위험도: 매우 높음</span>
+    </div>
+    <div class="threat-item">
+      <div class="threat-icon">⚡</div>
+      <div class="threat-title">기기 기능 조작</div>
+      <p class="threat-desc">인슐린 펌프, 심박 조율기 등 생명 유지 의료기기의 설정값을 원격으로 변조하는 공격</p>
+      <span class="threat-level">위험도: 치명적</span>
+    </div>
+    <div class="threat-item">
+      <div class="threat-icon">🔗</div>
+      <div class="threat-title">공급망 침해</div>
+      <p class="threat-desc">의료기기 소프트웨어 개발 과정에서 악성 코드를 삽입하는 소프트웨어 공급망 공격</p>
+      <span class="threat-level">위험도: 높음</span>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="section-tag">// 컨설팅 프로세스</div>
+  <h2 class="section-title">체계적인<br>5단계 접근법</h2>
+  <div class="process-steps">
+    <div class="process-step fade-up">
+      <div class="step-circle">1</div>
+      <div class="step-title">현황 분석</div>
+      <p class="step-desc">제품 아키텍처, 데이터 흐름, 기존 보안 통제 현황을 면밀히 파악합니다</p>
+    </div>
+    <div class="process-step fade-up">
+      <div class="step-circle">2</div>
+      <div class="step-title">위협 모델링</div>
+      <p class="step-desc">TARA/STRIDE 기반 체계적 위협 식별 및 리스크 평가를 수행합니다</p>
+    </div>
+    <div class="process-step fade-up">
+      <div class="step-circle">3</div>
+      <div class="step-title">보안 설계</div>
+      <p class="step-desc">식별된 위협에 대한 보안 통제 방안을 설계하고 구현을 지원합니다</p>
+    </div>
+    <div class="process-step fade-up">
+      <div class="step-circle">4</div>
+      <div class="step-title">검증 및 테스트</div>
+      <p class="step-desc">침투 테스트, 취약점 스캔 등을 통해 보안 효과성을 검증합니다</p>
+    </div>
+    <div class="process-step fade-up">
+      <div class="step-circle">5</div>
+      <div class="step-title">문서화 및 인증</div>
+      <p class="step-desc">MFDS/FDA 심사를 위한 모든 사이버보안 문서를 완성하고 제출을 지원합니다</p>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-layout">
+    <div class="about-visual">
+      <div class="about-box">
+        <div class="terminal-bar">
+          <div class="terminal-dot dot-red"></div>
+          <div class="terminal-dot dot-yellow"></div>
+          <div class="terminal-dot dot-green"></div>
+          <span class="terminal-title">turbinesoft@samd-securify ~ %</span>
+        </div>
+        <div class="terminal-content">
+          <div><span class="t-green">✓</span> <span class="t-blue">Initializing</span> SaMD Security Scan...</div>
+          <div><span class="t-muted">></span> Loading threat database... <span class="t-green">DONE</span></div>
+          <div><span class="t-muted">></span> CVSS analysis engine... <span class="t-green">READY</span></div>
+          <div><span class="t-muted">></span> MFDS compliance check... <span class="t-yellow">RUNNING</span></div>
+          <div><span class="t-muted">></span> IEC 62443 mapping... <span class="t-green">✓ PASS</span></div>
+          <div><span class="t-muted">></span> ISO 14971 risk matrix... <span class="t-green">✓ PASS</span></div>
+          <div><span class="t-muted">></span> SBOM integrity check... <span class="t-green">✓ PASS</span></div>
+          <div><span class="t-muted">></span> Penetration test suite... <span class="t-red">3 FINDINGS</span></div>
+          <div><span class="t-muted">></span> Generating report... <span class="t-blue">COMPILING</span></div>
+          <div>&nbsp;</div>
+          <div><span class="t-yellow">!</span> <span class="t-blue">Security Score:</span> <span class="t-green">87/100</span></div>
+          <div><span class="t-yellow">!</span> Remediation plan: <span class="t-blue">3 items</span></div>
+          <div>&nbsp;</div>
+          <div><span class="t-green">$</span> turbinesoft --consult <span class="cursor-blink"></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="about-content">
+      <div class="section-tag">// 터빈소프트 소개</div>
+      <h2 class="section-title">의료기기 보안의<br>新기준</h2>
+      <p class="section-desc">터빈소프트는 SaMD(소프트웨어 의료기기) 사이버보안에 특화된 전문 컨설팅 기업입니다. 의료기기 개발사가 안전하고 신뢰할 수 있는 제품을 출시할 수 있도록, 기술적 보안과 규제 준수를 동시에 달성하는 통합 솔루션을 제공합니다.</p>
+      <ul class="about-list">
+        <li>MFDS 식약처 출신 규제 전문가와 사이버보안 엔지니어로 구성된 전문 팀</li>
+        <li>국내 SaMD 인허가 최다 지원 실적 보유 (150건 이상 승인)</li>
+        <li>AI 진단 소프트웨어, 방사선 치료 계획 시스템, 모바일 의료 앱 등 전 분야 전문성</li>
+        <li>서울 강남 본사 및 글로벌 파트너십을 통한 FDA/CE 해외 인허가 동시 지원</li>
+        <li>의료기기 SDL(보안 개발 수명 주기) 체계 구축 및 내재화 지원</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-layout">
+    <div class="contact-info">
+      <div class="section-tag">// 문의하기</div>
+      <h2 class="section-title">지금 바로<br>상담하세요</h2>
+      <p class="section-desc" style="margin-top:16px">SaMD 사이버보안 문서화, 인허가 대응, 보안 진단 등 어떤 질문이든 전문가가 신속하게 답변드립니다.</p>
+      <div class="contact-items">
+        <div class="contact-item">
+          <div class="contact-item-icon">📍</div>
+          <div>
+            <div class="contact-item-label">주소</div>
+            <div class="contact-item-value">서울특별시 금천구 가산디지털1로 219, 벽산디지털밸리 6차 12층 1209호 (08501)
+(가산동, 벽산디지털밸리 6차)
+            </div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-item-icon">🌐</div>
+          <div>
+            <div class="contact-item-label">웹사이트</div>
+            <div class="contact-item-value"><a href="https://www.turbinesoft.io" target="new">turbinesoft hompe-page</a></div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-item-icon">✉️</div>
+          <div>
+            <div class="contact-item-label">이메일</div>
+            <div class="contact-item-value">mulder@turbinesoft.io</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-item-icon">📞</div>
+          <div>
+            <div class="contact-item-label">전화</div>
+            <div class="contact-item-value">010-6257-6448</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="contact-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">회사명</label>
+          <input type="text" class="form-input" placeholder="회사명을 입력하세요">
+        </div>
+        <div class="form-group">
+          <label class="form-label">담당자명</label>
+          <input type="text" class="form-input" placeholder="성함을 입력하세요">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">이메일</label>
+        <input type="email" class="form-input" placeholder="example@company.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">문의 유형</label>
+        <select class="form-select">
+          <option value="">문의 유형을 선택하세요</option>
+          <option>MFDS 인허가 사이버보안 문서화</option>
+          <option>위협 분석 및 리스크 평가 (TARA)</option>
+          <option>침투 테스트 및 취약점 분석</option>
+          <option>SBOM 구축 및 관리</option>
+          <option>FDA/CE 해외 인허가 지원</option>
+          <option>사후 시장 보안 모니터링</option>
+          <option>기타 문의</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">문의 내용</label>
+        <textarea class="form-textarea" placeholder="제품 유형, 개발 단계, 필요한 지원 사항을 간략히 설명해 주세요..."></textarea>
+      </div>
+      <button class="btn-submit" type="button">무료 상담 신청하기</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">TURBINESOFT</div>
+  <div class="footer-copy">© 2025 터빈소프트. All rights reserved. — SaMD Cybersecurity Consulting</div>
+  <div class="footer-domain">samd-securify.com</div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx - 5 + 'px';
+    cursor.style.top = my - 5 + 'px';
+  });
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx - 18 + 'px';
+    ring.style.top = ry - 18 + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+  document.querySelectorAll('a, button, .service-card, .standard-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform = 'scale(2)';
+      ring.style.width = '60px'; ring.style.height = '60px';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.transform = 'scale(1)';
+      ring.style.width = '36px'; ring.style.height = '36px';
+    });
+  });
+
+  // Navbar scroll
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Fade up
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
