@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1220"><title>Bike GPS · GPX Navigator</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif}*{box-sizing:border-box}body{margin:0;background:#0b1220;color:#f8fafc}header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px}h1{font-size:16px;margin:0}#status{color:#a5b4fc;font-size:12px}#map{height:52dvh;min-height:280px;background:#172234}.panel{padding:14px 16px 28px;max-width:800px;margin:auto}.speedrow{display:flex;align-items:center;gap:20px;justify-content:space-between}.speed{font-size:clamp(72px,18vw,116px);font-weight:800;letter-spacing:-5px;line-height:1}.unit{font-size:16px;color:#93c5fd}.routehint{font-size:14px;text-align:right;color:#cbd5e1}.routehint strong{font-size:20px;color:#fff}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}.stat{background:#1e293b;padding:13px 9px;border-radius:14px;text-align:center}.stat small{display:block;color:#94a3b8;font-size:11px;margin-bottom:5px}.stat b{font-size:18px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar button,.filebtn{border:0;border-radius:12px;background:#334155;color:white;padding:12px 14px;font-size:14px;font-weight:700;cursor:pointer}.toolbar button.primary,.filebtn{background:#2563eb}.toolbar button:disabled{opacity:.45}.filebtn input{display:none}.hint{font-size:12px;color:#94a3b8;margin:12px 0;line-height:1.6}.alert{color:#fbbf24!important}.good{color:#4ade80!important}.error{color:#f87171!important}
+</style></head><body>
+<header><h1>🚴 Bike GPS Navigator</h1><span id="status">지도 준비 중...</span></header>
+<div id="map" aria-label="Google 지도"></div>
+<div class="panel">
+  <div class="speedrow"><div><div id="speed" class="speed">0.0</div><div class="unit">km/h</div></div><div class="routehint"><div id="routeState">GPX를 선택하세요</div><strong id="offroute">--</strong><div id="direction">🧭 진행방향 --</div></div></div>
+  <div class="stats">
+    <div class="stat"><small>주행 거리</small><b id="distance">0.00 km</b></div>
+    <div class="stat"><small>GPX 남은 거리</small><b id="remaining">-- km</b></div>
+    <div class="stat"><small>주행 시간</small><b id="duration">00:00</b></div>
+    <div class="stat"><small>최고 속도</small><b id="maxSpeed">0.0</b></div>
+    <div class="stat"><small>경로 전체</small><b id="routeLength">-- km</b></div>
+    <div class="stat"><small>GPS 오차</small><b id="accuracy">-- m</b></div>
+  </div>
+  <div class="toolbar">
+    <label class="filebtn">📂 GPX 업로드<input id="file" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml"></label>
+    <button class="primary" id="start">▶ 시작</button><button id="stop">Ⅱ 일시정지</button><button id="reset">↺ 초기화</button><button id="follow">◎ 내 위치 따라가기: ON</button>
+  </div>
+  <p class="hint">파란색: GPX 예정 경로 · 초록색: 주행한 경로 · 원형 점: 현재 위치. GPS 품질이 낮거나 경로를 벗어나면 표시가 부정확할 수 있습니다. 화면이 켜진 상태에서 사용하세요.</p>
+</div>
+<script>
+// 1) 본인의 Google Maps JavaScript API 키로 변경하세요.
+const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
+const el = id => document.getElementById(id);
+let map, routeLine, riddenLine, locationCircle, watchId=null, follow=true, wakeLock=null;
+let route=[], cumulative=[], totalRoute=0, previous=null, rideMeters=0, topSpeed=0, activeSince=null, savedSeconds=0, timer=null;
+let ridden=[], nearestProgress=0;
+const rad=x=>x*Math.PI/180, deg=x=>x*180/Math.PI;
+function meters(a,b){const dLat=rad(b.lat-a.lat),dLon=rad(b.lng-a.lng);const x=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;return 12742000*Math.asin(Math.min(1,Math.sqrt(x)));}
+function bearing(a,b){const p1=rad(a.lat),p2=rad(b.lat),d=rad(b.lng-a.lng);return (deg(Math.atan2(Math.sin(d)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(d)))+360)%360;}
+function fmt(sec){sec=Math.floor(sec);return [Math.floor(sec/3600),Math.floor(sec/60)%60,sec%60].map(x=>String(x).padStart(2,'0')).join(':');}
+function status(s,cls=''){el('status').textContent=s;el('status').className=cls;}
+// Local tangent-plane projection: nearest point ON each GPX line segment.
+// Progress is measured along the segment, not simply to the closest waypoint.
+function closestOnRoute(p){if(route.length<2)return null;let best=null;const latScale=111320,lonScale=Math.cos(rad(p.lat))*111320;
+  for(let i=0;i<route.length-1;i++){
+    const a=route[i],b=route[i+1],ax=(a.lng-p.lng)*lonScale,ay=(a.lat-p.lat)*latScale,bx=(b.lng-p.lng)*lonScale,by=(b.lat-p.lat)*latScale;
+    const dx=bx-ax,dy=by-ay,t=Math.max(0,Math.min(1,-(ax*dx+ay*dy)/(dx*dx+dy*dy||1)));
+    const distance=Math.hypot(ax+t*dx,ay+t*dy),progress=cumulative[i]+t*(cumulative[i+1]-cumulative[i]);
+    if(!best||distance<best.distance)best={distance,progress,segment:i,target:b};
+  }return best;
+}
+function parseGpx(text){const xml=new DOMParser().parseFromString(text,'application/xml');if(xml.querySelector('parsererror'))throw Error('GPX XML 형식이 올바르지 않습니다.');
+  const tags=name=>Array.from(xml.getElementsByTagName('*')).filter(n=>n.localName===name);
+  const tracks=tags('trkseg').map(seg=>Array.from(seg.children).filter(n=>n.localName==='trkpt')).filter(x=>x.length>=2);
+  // Multiple disconnected track segments are intentionally not joined.
+  // For this simple demo, use the longest segment by point count.
+  const nodes=tracks.length?tracks.sort((a,b)=>b.length-a.length)[0]:tags('rtept');
+  const pts=nodes.map(n=>({lat:Number(n.getAttribute('lat')),lng:Number(n.getAttribute('lon'))})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&Math.abs(p.lat)<=90&&Math.abs(p.lng)<=180);
+  if(pts.length<2)throw Error('경로 좌표가 2개 이상 필요합니다 (trkpt 또는 rtept).');return pts;
+}
+function displayRoute(){routeLine?.setMap(null);routeLine=new google.maps.Polyline({map,path:route,strokeColor:'#38bdf8',strokeWeight:5,strokeOpacity:.95});const bounds=new google.maps.LatLngBounds();route.forEach(p=>bounds.extend(p));map.fitBounds(bounds,40);el('routeLength').textContent=(totalRoute/1000).toFixed(2)+' km';el('remaining').textContent=(totalRoute/1000).toFixed(2)+' km';el('routeState').textContent='GPX 경로 준비됨';}
+el('file').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const r=parseGpx(await f.text());route=r;cumulative=[0];for(let i=1;i<r.length;i++)cumulative.push(cumulative[i-1]+meters(r[i-1],r[i]));totalRoute=cumulative.at(-1);nearestProgress=0;displayRoute();status('GPX 로딩 완료','good');}catch(err){status(err.message,'error');}e.target.value='';});
+function onPosition(pos){const c=pos.coords,p={lat:c.latitude,lng:c.longitude};el('accuracy').textContent=Math.round(c.accuracy)+' m';if(c.accuracy>40){status('GPS 정확도 낮음','alert');return;}status('GPS 수신 중','good');
+  let speed=Number.isFinite(c.speed)&&c.speed>=0?c.speed*3.6:null;
+  if(previous){const dt=(pos.timestamp-previous.timestamp)/1000,d=meters(previous.point,p);if(dt>0){const estimated=d/dt*3.6;if(estimated<=65){if(d>Math.max(3,(c.accuracy+previous.accuracy)*.15)&&d<=Math.max(15,estimated/3.6*dt+10)){rideMeters+=d;}
+    if(speed===null)speed=estimated;}else{previous={point:p,timestamp:pos.timestamp,accuracy:c.accuracy};return;}}}
+  speed=Math.max(0,Math.min(65,speed??0));topSpeed=Math.max(topSpeed,speed);el('speed').textContent=speed.toFixed(1);el('maxSpeed').textContent=topSpeed.toFixed(1);el('distance').textContent=(rideMeters/1000).toFixed(2)+' km';
+  previous={point:p,timestamp:pos.timestamp,accuracy:c.accuracy};ridden.push(p);if(ridden.length>4000)ridden.shift();riddenLine.setPath(ridden);
+  if(!locationCircle){locationCircle=new google.maps.Circle({map,center:p,radius:Math.max(5,c.accuracy),fillColor:'#22c55e',fillOpacity:.6,strokeColor:'#fff',strokeWeight:2});}else{locationCircle.setCenter(p);locationCircle.setRadius(Math.max(5,c.accuracy));}
+  if(follow)map.panTo(p);
+  const closest=closestOnRoute(p);if(closest){const off=Math.round(closest.distance);el('offroute').textContent=off+' m';el('routeState').textContent=off>50?'⚠ 경로 이탈':'✓ 경로 주행 중';el('routeState').className=off>50?'alert':'good';
+    // Avoid accidentally jumping to a far-ahead repeated/crossing segment.
+    // This is approximate and not a full route map-matching algorithm.
+    if(off<=50 && closest.progress>=nearestProgress-100 && closest.progress<=nearestProgress+1500)nearestProgress=Math.max(nearestProgress,closest.progress);
+    el('remaining').textContent=(Math.max(0,totalRoute-nearestProgress)/1000).toFixed(2)+' km';
+    const target=route[Math.min(route.length-1,closest.segment+1)],heading=bearing(p,target);el('direction').textContent='🧭 다음 경로 방향 '+Math.round(heading)+'°';
+    if(totalRoute-nearestProgress<30&&off<30)el('routeState').textContent='🏁 도착 지점 근처';
+  }
+}
+function onError(err){status(({1:'위치 권한 거부',2:'GPS 신호 없음',3:'GPS 시간 초과'})[err.code]||err.message,'error');}
+async function requestWake(){try{if('wakeLock'in navigator)wakeLock=await navigator.wakeLock.request('screen');}catch{}}
+function start(){if(watchId!==null)return;if(!navigator.geolocation){status('이 브라우저는 GPS를 지원하지 않습니다','error');return;}previous=null;activeSince=Date.now();timer=setInterval(()=>{el('duration').textContent=fmt(savedSeconds+(Date.now()-activeSince)/1000);},1000);watchId=navigator.geolocation.watchPosition(onPosition,onError,{enableHighAccuracy:true,maximumAge:0,timeout:20000});requestWake();status('GPS 연결 중...');}
+function stop(){if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null;}if(activeSince!==null){savedSeconds+=(Date.now()-activeSince)/1000;activeSince=null;}clearInterval(timer);timer=null;previous=null;wakeLock?.release().catch(()=>{});wakeLock=null;el('speed').textContent='0.0';status('일시정지');}
+function reset(){stop();rideMeters=0;topSpeed=0;savedSeconds=0;nearestProgress=0;ridden=[];riddenLine?.setPath([]);for(const [id,value] of Object.entries({distance:'0.00 km',maxSpeed:'0.0',duration:'00:00',remaining:route.length?(totalRoute/1000).toFixed(2)+' km':'-- km'}))el(id).textContent=value;}
+el('start').onclick=start;el('stop').onclick=stop;el('reset').onclick=reset;el('follow').onclick=()=>{follow=!follow;el('follow').textContent='◎ 내 위치 따라가기: '+(follow?'ON':'OFF');};
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&watchId!==null)requestWake();});
+async function initMap(){map=new google.maps.Map(el('map'),{center:{lat:37.5665,lng:126.9780},zoom:14,disableDefaultUI:true,zoomControl:true,gestureHandling:'greedy',mapTypeControl:false});riddenLine=new google.maps.Polyline({map,strokeColor:'#4ade80',strokeOpacity:1,strokeWeight:5});status('GPX 업로드 또는 주행 시작');}
+function loadGoogleMaps(){if(GOOGLE_MAPS_API_KEY.startsWith('YOUR_')){status('HTML에서 Google Maps API 키를 설정하세요','alert');el('map').innerHTML='<div style="padding:24px;color:#cbd5e1">Google Maps API 키를 설정하면 이곳에 지도가 표시됩니다.</div>';return;}window.initBikeMap=initMap;const s=document.createElement('script');s.async=true;s.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(GOOGLE_MAPS_API_KEY)+'&loading=async&callback=initBikeMap';s.onerror=()=>status('Google Maps 로드 실패: API 키/도메인 확인','error');document.head.appendChild(s);}
+loadGoogleMaps();
+</script></body></html>
