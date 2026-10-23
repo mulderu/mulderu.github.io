@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <meta name="theme-color" content="#101827" />
+    <title>Bike GPS Speedometer</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #101827;
+        color: white;
+        font-family: system-ui, sans-serif;
+      }
+
+      main {
+        max-width: 480px;
+        min-height: 100dvh;
+        margin: auto;
+        padding: 30px 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      #status {
+        color: #94a3b8;
+        font-size: 14px;
+      }
+
+      .speed {
+        font-size: clamp(90px, 25vw, 140px);
+        font-weight: 800;
+        letter-spacing: -6px;
+        font-variant-numeric: tabular-nums;
+        margin-top: 24px;
+        line-height: 1.1;
+      }
+
+      .unit {
+        color: #38bdf8;
+        font-size: 25px;
+        margin-bottom: 40px;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .stat {
+        background: #1e293b;
+        border-radius: 16px;
+        padding: 20px 10px;
+      }
+
+      .stat label {
+        display: block;
+        color: #94a3b8;
+        margin-bottom: 10px;
+      }
+
+      .stat strong {
+        font-size: 25px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 32px;
+      }
+
+      button {
+        flex: 1;
+        padding: 17px;
+        border: 0;
+        border-radius: 12px;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      #start {
+        background: #38bdf8;
+        color: #082f49;
+      }
+      #stop {
+        background: #334155;
+        color: white;
+      }
+      #reset {
+        background: #475569;
+        color: white;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main>
+      <h1>🚴 BIKE SPEEDOMETER</h1>
+      <div id="status">GPS 대기 중</div>
+
+      <div class="speed" id="speed">0.0</div>
+      <div class="unit">km/h</div>
+
+      <div class="stats">
+        <div class="stat">
+          <label>최고 속도</label>
+          <strong id="maxSpeed">0.0</strong>
+        </div>
+        <div class="stat">
+          <label>이동 거리</label>
+          <strong id="distance">0.00</strong>
+          <small>km</small>
+        </div>
+        <div class="stat">
+          <label>주행 시간</label>
+          <strong id="duration">00:00:00</strong>
+        </div>
+        <div class="stat">
+          <label>GPS 정확도</label>
+          <strong id="accuracy">--</strong>
+          <small>m</small>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button id="start" onclick="startRide()">시작</button>
+        <button id="stop" onclick="stopRide()">정지</button>
+        <button id="reset" onclick="resetRide()">초기화</button>
+      </div>
+    </main>
+
+    <script>
+      let watchId = null;
+      let lastPosition = null;
+      let distance = 0;
+      let maxSpeed = 0;
+      let elapsed = 0;
+      let startedAt = null;
+      let timerId = null;
+
+      const $ = (id) => document.getElementById(id);
+
+      // 두 GPS 좌표 사이의 거리 (미터)
+      function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const rad = (x) => (x * Math.PI) / 180;
+
+        const dLat = rad(lat2 - lat1);
+        const dLon = rad(lon2 - lon1);
+
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+
+        return 2 * R * Math.asin(Math.sqrt(a));
+      }
+
+      function formatTime(seconds) {
+        const s = Math.floor(seconds);
+        return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60]
+          .map((n) => String(n).padStart(2, "0"))
+          .join(":");
+      }
+
+      function updateTimer() {
+        if (startedAt === null) return;
+        const seconds = elapsed + (Date.now() - startedAt) / 1000;
+
+        $("duration").textContent = formatTime(seconds);
+      }
+
+      function onPosition(pos) {
+        const c = pos.coords;
+        const accuracy = c.accuracy;
+
+        $("accuracy").textContent = accuracy.toFixed(0);
+
+        // GPS 오차가 큰 경우 사용하지 않음
+        if (accuracy > 30) {
+          $("status").textContent = "GPS 신호 불안정";
+          lastPosition = null;
+          $("speed").textContent = "0.0";
+          return;
+        }
+
+        $("status").textContent = "● GPS 연결됨";
+
+        let speed = c.speed; // m/s, null일 수 있음
+
+        if (lastPosition) {
+          const prev = lastPosition.coords;
+
+          const meters = getDistance(
+            prev.latitude,
+            prev.longitude,
+            c.latitude,
+            c.longitude,
+          );
+
+          const seconds = (pos.timestamp - lastPosition.timestamp) / 1000;
+
+          if (seconds > 0) {
+            const estimatedSpeed = meters / seconds;
+
+            // 비현실적인 좌표 점프 제거 (60km/h 초과)
+            if (estimatedSpeed <= 60 / 3.6) {
+              distance += meters;
+
+              if (speed === null || !Number.isFinite(speed)) {
+                speed = estimatedSpeed;
+              }
+            } else {
+              lastPosition = pos;
+              return;
+            }
+          }
+        }
+
+        speed = Math.max(0, speed ?? 0);
+        const kmh = speed * 3.6;
+
+        // GPS 튐에 의한 비정상 속도 제거
+        if (kmh <= 60) {
+          maxSpeed = Math.max(maxSpeed, kmh);
+
+          $("speed").textContent = kmh.toFixed(1);
+          $("maxSpeed").textContent = maxSpeed.toFixed(1);
+        }
+
+        $("distance").textContent = (distance / 1000).toFixed(2);
+
+        lastPosition = pos;
+      }
+
+      function onError(error) {
+        const messages = {
+          1: "위치 권한이 거부되었습니다",
+          2: "GPS 위치를 확인할 수 없습니다",
+          3: "GPS 응답 시간 초과",
+        };
+
+        $("status").textContent = messages[error.code] || error.message;
+      }
+
+      function startRide() {
+        if (watchId !== null) return;
+
+        if (!navigator.geolocation) {
+          alert("GPS를 지원하지 않는 브라우저입니다.");
+          return;
+        }
+
+        lastPosition = null;
+        startedAt = Date.now();
+        $("status").textContent = "GPS 연결 중...";
+
+        timerId = setInterval(updateTimer, 1000);
+
+        watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: 15000,
+        });
+      }
+
+      function stopRide() {
+        if (watchId !== null) {
+          navigator.geolocation.clearWatch(watchId);
+          watchId = null;
+        }
+
+        if (startedAt !== null) {
+          elapsed += (Date.now() - startedAt) / 1000;
+          startedAt = null;
+        }
+
+        clearInterval(timerId);
+        timerId = null;
+        lastPosition = null;
+
+        $("speed").textContent = "0.0";
+        $("status").textContent = "주행 정지";
+      }
+
+      function resetRide() {
+        stopRide();
+        distance = 0;
+        maxSpeed = 0;
+        elapsed = 0;
+
+        $("maxSpeed").textContent = "0.0";
+        $("distance").textContent = "0.00";
+        $("duration").textContent = "00:00:00";
+        $("accuracy").textContent = "--";
+        $("status").textContent = "GPS 대기 중";
+      }
+    </script>
+  </body>
+</html>
